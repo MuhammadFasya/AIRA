@@ -1,0 +1,163 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+* {
+  @apply transition-colors duration-200;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply font-sans antialiased;
+  font-family: "Inter", "Plus Jakarta Sans", sans-serif;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+.dark {
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-600;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+}
+
+/* Custom Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 1s ease-in-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-out-in infinity;
+}
+
+/* Focus Styles */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-500;
+}
+
+/* Message Bubble Styles */
+.message-bubble {
+  @apply px-4 py-3 rounded-lg max-w-xs md:max-w-md lg:max-w-lg break-words;
+}
+
+.message-user {
+  @apply bg-blue-500 text-white rounded-br-none;
+}
+
+.message-aira {
+  @apply bg-white text-gray-900 border border-gray-200 rounded-bl-none;
+}
+
+.dark .message-aira {
+  @apply bg-gray-700 text-gray-100 border-gray-700;
+}
+
+/* Button Hover Effects */
+button {
+  @apply transition-all duration-200;
+}
+
+button:hover:not(:disabled) {
+  @apply transform translate-y-[-1px];
+}
+
+button:active:not(:disabled) {
+  @apply transform translate-y-0;
+}
+
+/* Input Focus Styles */
+input:focus,
+textarea:focus {
+  @apply ring-0;
+}
+
+/* Textarea Auto-Expand */
+textarea {
+  @apply resize-none overflow-hidden;
+}
+
+/* Sidebar Animation */
+.sidebar-enter {
+  @apply animate-slideIn;
+}
+
+.sidebar-exit {
+  @apply animate-fadeIn;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  html {
+    @apply text-sm;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    @apply text-base;
+  }
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  @apply animate-spin;
+}
