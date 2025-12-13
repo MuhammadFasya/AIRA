@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import ChatArea from '../components/ChatArea';
-import ChatInput from '../components/ChatInput';
-import Greeting from '../components/Greeting';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import Sidebar from "../components/Sidebar";
+import ChatArea from "../components/ChatArea";
+import ChatInput from "../components/ChatInput";
+import Greeting from "../components/Greeting";
+import axios from "axios";
 
 /**
  * Home Page
@@ -14,12 +14,17 @@ import axios from 'axios';
  */
 const Home = ({ isDark }) => {
   const [messages, setMessages] = useState([]);
+  // Simulated current user profile (replace with real auth later)
+  const [userProfile] = useState({
+    name: "You",
+    avatar: null, // e.g. '/public/avatar.jpg' or remote URL
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
 
   // API Base URL - Change this to your Flask backend URL
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = "http://localhost:5000";
 
   /**
    * Send message to backend and get response
@@ -28,12 +33,13 @@ const Home = ({ isDark }) => {
   const handleSendMessage = async (userMessage) => {
     // Add user message to chat
     const userMsg = {
-      sender: 'user',
+      sender: "user",
       content: userMessage,
       timestamp: new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
+        hour: "2-digit",
+        minute: "2-digit",
       }),
+      avatar: userProfile.avatar,
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -49,13 +55,14 @@ const Home = ({ isDark }) => {
 
       // Add Aira's response to chat
       const airaMsg = {
-        sender: 'aira',
+        sender: "aira",
         content: aiResponse,
         timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
+          hour: "2-digit",
+          minute: "2-digit",
         }),
         sentiment,
+        avatar: null, // theme-aware avatar rendered in ChatArea
       };
 
       setMessages((prev) => [...prev, airaMsg]);
@@ -63,23 +70,23 @@ const Home = ({ isDark }) => {
       // Update chat history
       if (userMessage.length > 30) {
         setChatHistory((prev) => [
-          userMessage.substring(0, 30) + '...',
+          userMessage.substring(0, 30) + "...",
           ...prev,
         ]);
       } else {
         setChatHistory((prev) => [userMessage, ...prev]);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
 
       // Error response from Aira
       const errorMsg = {
-        sender: 'aira',
+        sender: "aira",
         content:
-          'Sorry, I encountered an error. Please make sure the backend is running and try again.',
+          "Sorry, I encountered an error. Please make sure the backend is running and try again.",
         timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
+          hour: "2-digit",
+          minute: "2-digit",
         }),
       };
 
@@ -98,7 +105,7 @@ const Home = ({ isDark }) => {
       setMessages([]);
       setSidebarOpen(false);
     } catch (error) {
-      console.error('Error resetting chat:', error);
+      console.error("Error resetting chat:", error);
       setMessages([]);
       setSidebarOpen(false);
     }

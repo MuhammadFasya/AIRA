@@ -1,133 +1,78 @@
-import React from 'react';
+import React, { useState } from "react";
+import axiosClient from "../api/axiosClient";
+import Avatar from "../components/Avatar";
 
-/**
- * Login Page
- * - User authentication interface
- * - Email/password login form
- * - Placeholder for future implementation
- */
-const Login = ({ isDark }) => {
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+const Login = ({ onLogin }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    // TODO: Implement login logic
-    console.log('Login attempt:', { email, password });
-    setLoading(false);
+    try {
+      const res = await axiosClient.post("/auth/login", { email, password });
+      const { access_token, user } = res.data;
+      localStorage.setItem("aira_token", access_token);
+      localStorage.setItem("aira_user", JSON.stringify(user));
+      onLogin(user);
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data?.error || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${
-        isDark ? 'bg-gray-900' : 'bg-gray-50'
-      }`}
-    >
-      <div
-        className={`w-full max-w-md p-6 rounded-lg shadow-lg ${
-          isDark ? 'bg-gray-800' : 'bg-white'
-        }`}
-      >
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-lg">A</span>
-          </div>
-          <h1
-            className={`text-2xl font-bold ${
-              isDark ? 'text-white' : 'text-gray-900'
-            }`}
-          >
-            Aira
-          </h1>
-          <p
-            className={`text-sm mt-2 ${
-              isDark ? 'text-gray-400' : 'text-gray-600'
-            }`}
-          >
-            Your Mental Health Companion
+    <div className="flex-1 flex items-center justify-center">
+      <div className="w-full max-w-md p-6 rounded-lg shadow-md bg-white dark:bg-gray-800">
+        <div className="flex flex-col items-center gap-3 mb-4">
+          <Avatar alt="Aira" size={64} />
+          <h2 className="text-xl font-semibold">Sign in to Aira</h2>
+          <p className="text-sm text-gray-500">
+            A friendly, empathetic AI companion
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input */}
-          <div>
-            <label
-              className={`block text-sm font-medium mb-2 ${
-                isDark ? 'text-gray-300' : 'text-gray-700'
-              }`}
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors duration-200 ${
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-400'
-              }`}
-              placeholder="your@email.com"
-              required
-            />
-          </div>
+        <form onSubmit={handleLogin}>
+          <label className="block text-sm font-medium mb-1">Email</label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            required
+            className="w-full mb-3 p-2 rounded border bg-gray-50 dark:bg-gray-700"
+          />
 
-          {/* Password Input */}
-          <div>
-            <label
-              className={`block text-sm font-medium mb-2 ${
-                isDark ? 'text-gray-300' : 'text-gray-700'
-              }`}
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors duration-200 ${
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-400'
-              }`}
-              placeholder="••••••••"
-              required
-            />
-          </div>
+          <label className="block text-sm font-medium mb-1">Password</label>
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            required
+            className="w-full mb-4 p-2 rounded border bg-gray-50 dark:bg-gray-700"
+          />
 
-          {/* Submit Button */}
+          {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
+
           <button
             type="submit"
+            className={`w-full py-2 rounded ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"} text-white`}
             disabled={loading}
-            className={`w-full py-2 rounded-lg font-medium transition-all duration-200 ${
-              loading
-                ? isDark
-                  ? 'bg-gray-600 text-gray-400'
-                  : 'bg-gray-400 text-gray-200'
-                : isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        <p
-          className={`text-center text-sm mt-6 ${
-            isDark ? 'text-gray-400' : 'text-gray-600'
-          }`}
-        >
-          Don't have an account?{' '}
-          <a
-            href="#signup"
-            className="text-blue-500 hover:underline font-medium"
-          >
-            Sign up
-          </a>
-        </p>
+        <div className="mt-4 text-center text-sm text-gray-500">
+          <span>Don't have an account? </span>
+          <button className="text-blue-500 underline" disabled>
+            Sign up (coming soon)
+          </button>
+        </div>
       </div>
     </div>
   );

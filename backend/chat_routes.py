@@ -14,7 +14,6 @@ import os
 import requests
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from textblob import TextBlob
 
 from models import db, User, Chat, chat_schema, chats_schema
 
@@ -22,8 +21,16 @@ chat_bp = Blueprint('chat', __name__)
 
 
 def detect_sentiment(text: str) -> str:
-    """Simple sentiment detection using TextBlob (optional enhancement)."""
+    """Simple sentiment detection.
+
+    Import TextBlob lazily to avoid heavy imports at module load time
+    (TextBlob brings NLTK and other large deps). If TextBlob is not
+    available or fails, return 'neutral' as a safe default.
+    """
     try:
+        # Lazy import to avoid expensive startup cost
+        from textblob import TextBlob
+
         polarity = TextBlob(text).sentiment.polarity
         if polarity > 0.1:
             return 'positive'
@@ -54,11 +61,38 @@ def get_gemini_response(user_message: str) -> dict:
         'Content-Type': 'application/json',
     }
 
+    # Build a conservative, provider-agnostic payload. Some Gemini
+    # endpoints require certain fields (like ids or subjects) to be
+    # strings. We'll ensure any numeric id-like fields are cast to
+    # strings before sending to avoid 4xx errors such as
+    # "Subject must be a string".
     payload = {
-        # The exact payload depends on the Gemini endpoint/version.
+        # The simplest content wrapper: adapt later to your exact API.
         'input': user_message,
-        # Add more parameters as your account supports (temperature, max tokens, etc.)
+        # Optional tuning parameters (adjust per model/docs)
+        'temperature': float(os.getenv('GEMINI_TEMPERATURE', '0.7')),
+        'max_output_tokens': int(os.getenv('GEMINI_MAX_TOKENS', '512')),
     }
+
+    def _stringify_id_fields(obj):
+        """Recursively convert numeric id-like fields to strings.
+
+        This helps when the API expects string identifiers (common in
+        some Google endpoints where 'subject' or 'id' must be strings).
+        """
+        if isinstance(obj, dict):
+            new = {}
+            for k, v in obj.items():
+                if (k == 'id' or k == 'subject' or k.endswith('_id')) and isinstance(v, (int,)):
+                    new[k] = str(v)
+                else:
+                    new[k] = _stringify_id_fields(v)
+            return new
+        if isinstance(obj, list):
+            return [_stringify_id_fields(x) for x in obj]
+        return obj
+
+    payload = _stringify_id_fields(payload)
 
     try:
         resp = requests.post(api_url, headers=headers, json=payload, timeout=15)

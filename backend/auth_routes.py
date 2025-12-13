@@ -78,7 +78,7 @@ def login():
 
         # Create JWT token; include user id as identity
         expires = int(os.getenv('JWT_EXP_DAYS', '7'))
-        access_token = create_access_token(identity=user.id, expires_delta=timedelta(days=expires))
+        access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=expires))
 
         return jsonify({'access_token': access_token, 'user': user.to_dict()}), 200
 

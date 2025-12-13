@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Sun, Moon, Menu } from 'lucide-react';
+import React, { useState } from "react";
+import { Sun, Moon, Menu } from "lucide-react";
+import Avatar from "./Avatar";
 
 /**
  * Navbar Component
@@ -22,9 +23,7 @@ const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
   return (
     <nav
       className={`sticky top-0 z-40 w-full transition-colors duration-300 ${
-        isDark
-          ? 'bg-gray-900 border-gray-800'
-          : 'bg-white border-gray-200'
+        isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
       } border-b shadow-sm`}
     >
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
@@ -35,7 +34,7 @@ const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
           </div>
           <span
             className={`font-bold text-xl ${
-              isDark ? 'text-white' : 'text-gray-900'
+              isDark ? "text-white" : "text-gray-900"
             }`}
           >
             Aira
@@ -46,7 +45,7 @@ const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
         <div className="hidden md:flex items-center justify-center flex-1">
           <span
             className={`text-sm font-medium ${
-              isDark ? 'text-gray-400' : 'text-gray-600'
+              isDark ? "text-gray-400" : "text-gray-600"
             }`}
           >
             Your Mental Health Companion
@@ -60,11 +59,11 @@ const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
             onClick={toggleTheme}
             className={`p-2 rounded-lg transition-colors duration-200 ${
               isDark
-                ? 'bg-gray-800 hover:bg-gray-700 text-yellow-400'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                ? "bg-gray-800 hover:bg-gray-700 text-yellow-400"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             }`}
             aria-label="Toggle theme"
-            title={isDark ? 'Light Mode' : 'Dark Mode'}
+            title={isDark ? "Light Mode" : "Dark Mode"}
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -74,13 +73,22 @@ const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
             onClick={handleMenuClick}
             className={`md:hidden p-2 rounded-lg transition-colors duration-200 ${
               isDark
-                ? 'bg-gray-800 hover:bg-gray-700 text-white'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                ? "bg-gray-800 hover:bg-gray-700 text-white"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             }`}
             aria-label="Toggle menu"
           >
             <Menu size={20} />
           </button>
+
+          {/* Profile Avatar (placeholder) */}
+          <div className="hidden md:block">
+            <Avatar
+              alt="You"
+              size={36}
+              className="border-2 border-white dark:border-gray-800"
+            />
+          </div>
         </div>
       </div>
     </nav>
