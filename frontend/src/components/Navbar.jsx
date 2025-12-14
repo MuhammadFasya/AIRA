@@ -8,7 +8,7 @@ import Avatar from "./Avatar";
  * - Sticky top positioning
  * - Mobile responsive with hamburger menu support
  */
-const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
+const Navbar = ({ isDark, setIsDark, onMenuToggle, user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleTheme = () => {
@@ -81,13 +81,33 @@ const Navbar = ({ isDark, setIsDark, onMenuToggle }) => {
             <Menu size={20} />
           </button>
 
-          {/* Profile Avatar (placeholder) */}
-          <div className="hidden md:block">
-            <Avatar
-              alt="You"
-              size={36}
-              className="border-2 border-white dark:border-gray-800"
-            />
+          {/* Profile Avatar (placeholder) and optional logout */}
+          <div className="hidden md:flex items-center gap-3">
+            {user && (
+              <>
+                <div className="text-sm text-gray-500 mr-2 hidden md:block">
+                  {user.name}
+                </div>
+                <button
+                  onClick={() => onLogout && onLogout()}
+                  className={`px-3 py-1 rounded-md text-sm transition-colors duration-200 ${
+                    isDark
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  Logout
+                </button>
+              </>
+            )}
+
+            <div>
+              <Avatar
+                alt={user?.name || "You"}
+                size={36}
+                className="border-2 border-white dark:border-gray-800"
+              />
+            </div>
           </div>
         </div>
       </div>

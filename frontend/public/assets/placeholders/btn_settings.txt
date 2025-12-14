@@ -1,0 +1,3 @@
+Placeholder: Settings button asset
+Filename suggestion: btn-settings.svg or png
+Function: opens settings overlay/modal

@@ -12,12 +12,12 @@ import axios from "axios";
  * - Handles communication with Flask backend
  * - Responsive grid layout with sidebar
  */
-const Home = ({ isDark }) => {
+const Home = ({ isDark, user }) => {
   const [messages, setMessages] = useState([]);
   // Simulated current user profile (replace with real auth later)
   const [userProfile] = useState({
-    name: "You",
-    avatar: null, // e.g. '/public/avatar.jpg' or remote URL
+    name: user?.name || "You",
+    avatar: user?.avatar || null, // e.g. '/public/avatar.jpg' or remote URL
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -127,7 +127,7 @@ const Home = ({ isDark }) => {
         {/* Greeting or Chat Area */}
         {messages.length === 0 ? (
           <div className="flex-1 overflow-y-auto">
-            <Greeting isDark={isDark} />
+            <Greeting isDark={isDark} userName={userProfile.name} />
           </div>
         ) : (
           <ChatArea messages={messages} isDark={isDark} isLoading={isLoading} />

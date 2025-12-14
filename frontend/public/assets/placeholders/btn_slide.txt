@@ -1,0 +1,3 @@
+Placeholder: Slide (sidebar) button asset
+Filename suggestion: btn-slide.svg or png
+Function: toggles sidebar, small icon ~24x24
