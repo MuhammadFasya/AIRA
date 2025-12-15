@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { ArrowDown } from "lucide-react";
 
 /**
  * ChatArea Component
@@ -9,6 +10,8 @@ import React, { useEffect, useRef } from "react";
  */
 const ChatArea = ({ messages = [], isDark, isLoading = false }) => {
   const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const themeFolder = isDark ? "Dark Mode" : "Light Mode";
   const aiAvatarSrc = encodeURI(
@@ -20,18 +23,31 @@ const ChatArea = ({ messages = [], isDark, isLoading = false }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Check if user has scrolled up
+  const handleScroll = () => {
+    if (containerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isNearBottom);
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+    <div
+      className="flex-1 overflow-y-auto relative"
+      ref={containerRef}
+      onScroll={handleScroll}
+    >
+      <div className="px-6 md:px-8 lg:px-12 py-6 space-y-4">
         {/* Messages List */}
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`flex items-end gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex items-end gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             {/* AI Avatar on the left */}
             {msg.sender === "aira" && (
@@ -46,7 +62,7 @@ const ChatArea = ({ messages = [], isDark, isLoading = false }) => {
 
             {/* Message Bubble - Cloud Style */}
             <div
-              className={`relative max-w-xs md:max-w-md lg:max-w-lg px-5 py-3 shadow-sm ${
+              className={`relative max-w-[75%] md:max-w-[65%] lg:max-w-[60%] px-5 py-3 shadow-sm ${
                 msg.sender === "user"
                   ? isDark
                     ? "bg-blue-600 text-white rounded-3xl rounded-br-md"
@@ -56,7 +72,7 @@ const ChatArea = ({ messages = [], isDark, isLoading = false }) => {
                     : "bg-white text-gray-900 rounded-3xl rounded-bl-md border border-gray-200"
               }`}
             >
-              <p className="text-sm md:text-base leading-relaxed break-words">
+              <p className="text-sm md:text-base leading-relaxed break-words text-justify">
                 {msg.content}
               </p>
 
@@ -104,19 +120,26 @@ const ChatArea = ({ messages = [], isDark, isLoading = false }) => {
                 isDark ? "bg-gray-800" : "bg-white border border-gray-200"
               }`}
             >
-              <div className="flex gap-1">
-                <div
-                  className={`w-2 h-2 rounded-full ${isDark ? "bg-gray-600" : "bg-gray-400"} animate-bounce`}
-                  style={{ animationDelay: "0ms" }}
-                ></div>
-                <div
-                  className={`w-2 h-2 rounded-full ${isDark ? "bg-gray-600" : "bg-gray-400"} animate-bounce`}
-                  style={{ animationDelay: "150ms" }}
-                ></div>
-                <div
-                  className={`w-2 h-2 rounded-full ${isDark ? "bg-gray-600" : "bg-gray-400"} animate-bounce`}
-                  style={{ animationDelay: "300ms" }}
-                ></div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
+                >
+                  Aira is typing
+                </span>
+                <div className="flex gap-1">
+                  <div
+                    className={`w-2 h-2 rounded-full ${isDark ? "bg-blue-500" : "bg-blue-600"} animate-bounce`}
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className={`w-2 h-2 rounded-full ${isDark ? "bg-blue-500" : "bg-blue-600"} animate-bounce`}
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className={`w-2 h-2 rounded-full ${isDark ? "bg-blue-500" : "bg-blue-600"} animate-bounce`}
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
@@ -125,6 +148,21 @@ const ChatArea = ({ messages = [], isDark, isLoading = false }) => {
         {/* Scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Scroll to bottom button */}
+      {showScrollButton && (
+        <button
+          onClick={scrollToBottom}
+          className={`fixed bottom-24 right-8 p-3 rounded-full shadow-lg transition-all duration-300 ${
+            isDark
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-blue-500 hover:bg-blue-600"
+          } text-white z-20`}
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown size={20} />
+        </button>
+      )}
     </div>
   );
 };

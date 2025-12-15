@@ -5,6 +5,7 @@ import ChatInput from "../components/ChatInput";
 import Greeting from "../components/Greeting";
 import SearchModal from "../components/SearchModal";
 import HistoryModal from "../components/HistoryModal";
+import Toast from "../components/Toast";
 import axiosClient from "../api/axiosClient";
 
 /**
@@ -20,6 +21,7 @@ const Home = ({
   sidebarOpen,
   onToggleSidebar,
   onOpenSettings,
+  language = "en",
 }) => {
   const [messages, setMessages] = useState([]);
   const themeFolder = isDark ? "Dark Mode" : "Light Mode";
@@ -55,6 +57,11 @@ const Home = ({
   const [chatHistory, setChatHistory] = useState([]);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
 
   /**
    * Send message to backend and get response
@@ -109,11 +116,30 @@ const Home = ({
     } catch (error) {
       console.error("Error sending message:", error);
 
-      // Error response from Aira
+      // Show user-friendly error toast
+      if (error.response) {
+        // Server responded with error
+        showToast(
+          error.response.data?.error ||
+            "Failed to send message. Please try again.",
+          "error"
+        );
+      } else if (error.request) {
+        // No response from server
+        showToast(
+          "Cannot connect to server. Please check your connection and make sure the backend is running.",
+          "error"
+        );
+      } else {
+        // Other errors
+        showToast("An unexpected error occurred. Please try again.", "error");
+      }
+
+      // Error response from Aira (still show in chat for context)
       const errorMsg = {
         sender: "aira",
         content:
-          "Sorry, I encountered an error. Please make sure the backend is running and try again.",
+          "Sorry, I encountered an error. Please try again or check your connection.",
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -159,13 +185,12 @@ const Home = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 flex flex-col relative transition-all duration-500 ease-in-out ${sidebarOpen ? "ml-64" : "ml-20"}`}
+        className={`flex-1 flex flex-col relative overflow-y-auto transition-all duration-500 ease-in-out ${sidebarOpen ? "ml-64" : "ml-20"}`}
         style={{
           backgroundImage: `url('${backgroundImagePath}')`,
-          backgroundAttachment: "fixed",
           backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center top",
+          backgroundRepeat: "repeat-y",
         }}
       >
         {/* Greeting or Chat Area */}
@@ -220,6 +245,15 @@ const Home = ({
         chatHistory={chatHistory}
         isDark={isDark}
       />
+
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

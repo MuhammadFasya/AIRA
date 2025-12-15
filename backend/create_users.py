@@ -13,13 +13,21 @@ def create_test_users():
         # Create database tables if they don't exist
         db.create_all()
         
-        # Test users to create
+        # Test users to create - Each has unique credentials for beta testing
         test_users = [
+            {'name': 'Alex Chen', 'email': 'alex@aira.com', 'password': 'alex2025'},
+            {'name': 'Sarah Johnson', 'email': 'sarah@aira.com', 'password': 'sarah2025'},
+            {'name': 'Miguel Rodriguez', 'email': 'miguel@aira.com', 'password': 'miguel2025'},
+            {'name': 'Priya Patel', 'email': 'priya@aira.com', 'password': 'priya2025'},
+            {'name': 'Jordan Kim', 'email': 'jordan@aira.com', 'password': 'jordan2025'},
+            {'name': 'Emma Wilson', 'email': 'emma@aira.com', 'password': 'emma2025'},
+            {'name': 'Lucas Silva', 'email': 'lucas@aira.com', 'password': 'lucas2025'},
+            {'name': 'Zara Ahmed', 'email': 'zara@aira.com', 'password': 'zara2025'},
+            {'name': 'Ryan Taylor', 'email': 'ryan@aira.com', 'password': 'ryan2025'},
+            {'name': 'Nina Kowalski', 'email': 'nina@aira.com', 'password': 'nina2025'},
+            # Keep original test accounts
             {'name': 'Test User 1', 'email': 'test1@aira.com', 'password': 'password123'},
-            {'name': 'Test User 2', 'email': 'test2@aira.com', 'password': 'password123'},
-            {'name': 'Test User 3', 'email': 'test3@aira.com', 'password': 'password123'},
             {'name': 'Demo User', 'email': 'demo@aira.com', 'password': 'demo123'},
-            {'name': 'Beta Tester', 'email': 'beta@aira.com', 'password': 'beta123'},
         ]
         
         for user_data in test_users:

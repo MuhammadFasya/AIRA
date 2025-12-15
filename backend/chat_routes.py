@@ -71,7 +71,25 @@ def get_gemini_response(user_message: str) -> dict:
             'X-goog-api-key': api_key,
             'Content-Type': 'application/json',
         }
+        
+        # System prompt to define Aira's personality and behavior
+        system_instruction = """You are Aira, a compassionate and empathetic mental health support AI designed specifically for Gen-Z students. Your purpose is to:
+
+1. Listen actively and provide emotional support
+2. Help users process their feelings and thoughts
+3. Offer coping strategies and mental wellness tips
+4. Be warm, understanding, and non-judgmental
+5. Use casual, friendly language that resonates with Gen-Z
+6. Recognize when someone needs professional help and suggest it appropriately
+
+When asked "who are you" or similar questions, introduce yourself as: "I'm Aira, your mental health companion. I'm here to listen, support, and help you navigate your feelings and challenges. Think of me as a friendly ear whenever you need someone to talk to."
+
+Always be supportive, never dismissive, and maintain a safe, confidential space for conversations."""
+
         payload = {
+            'system_instruction': {
+                'parts': [{'text': system_instruction}]
+            },
             'contents': [
                 {'parts': [{'text': user_message}]}
             ]
@@ -208,25 +226,18 @@ def chat():
     Returns: { aira_reply, sentiment, user_message, chat_records }
     """
     try:
-        print("=== CHAT ENDPOINT CALLED ===")
         data = request.get_json() or {}
-        print(f"Received data: {data}")
         message = (data.get('message') or '').strip()
-        print(f"Message: '{message}'")
         if not message:
-            print("ERROR: Empty message")
             return jsonify({'error': 'message is required'}), 400
 
         user_id = get_jwt_identity()
-        print(f"JWT user_id: {user_id}")
         try:
             user_id = int(user_id)
         except Exception:
             pass
         user = User.query.get(user_id)
-        print(f"User found: {user}")
         if not user:
-            print("ERROR: User not found")
             return jsonify({'error': 'User not found'}), 404
 
         # Optional sentiment analysis
@@ -236,14 +247,10 @@ def chat():
         user_chat = Chat(user_id=user.id, message=message, sender='user')
         db.session.add(user_chat)
         db.session.commit()
-        print(f"User message saved: {user_chat.id}")
 
         # Call Gemini
-        print("Calling Gemini API...")
         ai_resp = get_gemini_response(message)
-        print(f"Gemini response: {ai_resp}")
         aira_reply = ai_resp.get('reply') if isinstance(ai_resp, dict) else str(ai_resp)
-        print(f"Aira reply: '{aira_reply}'")
 
         # Save Aira's reply
         aira_chat = Chat(user_id=user.id, message=aira_reply, sender='aira')
@@ -259,13 +266,14 @@ def chat():
             'sentiment': sentiment,
             'history_length': history_count,
         }
-        print(f"Returning response: {response_data}")
         return jsonify(response_data), 200
 
     except Exception as exc:
-        print(f"ERROR in chat endpoint: {exc}")
-        import traceback
-        traceback.print_exc()
+        # Log error server-side for debugging
+        try:
+            current_app.logger.error(f'Chat endpoint error: {exc}')
+        except Exception:
+            pass
         db.session.rollback()
         return jsonify({'error': 'Chat processing failed', 'details': str(exc)}), 500
 
