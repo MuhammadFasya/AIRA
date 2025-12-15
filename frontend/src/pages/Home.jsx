@@ -20,16 +20,34 @@ const Home = ({
   onOpenSettings,
 }) => {
   const [messages, setMessages] = useState([]);
-  // Simulated current user profile (replace with real auth later)
   const themeFolder = isDark ? "Dark Mode" : "Light Mode";
   const avatarDefault = encodeURI(
     `/assets/${themeFolder}/${isDark ? "aiAvatar - Darkbackground.png" : "aiAvatar - Light.png"}`
   );
 
-  const [userProfile] = useState({
+  // Get user avatar - use uploaded profile picture if available
+  const getUserAvatar = () => {
+    if (user?.profilePicture) {
+      return user.profilePicture;
+    }
+    if (user?.avatar) {
+      return user.avatar;
+    }
+    return avatarDefault;
+  };
+
+  const [userProfile, setUserProfile] = useState({
     name: user?.name || "You",
-    avatar: user?.avatar || avatarDefault, // theme-aware default avatar
+    avatar: getUserAvatar(),
   });
+
+  // Update user profile when user data changes (e.g., after profile update)
+  useEffect(() => {
+    setUserProfile({
+      name: user?.name || "You",
+      avatar: getUserAvatar(),
+    });
+  }, [user, isDark]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
@@ -162,17 +180,21 @@ const Home = ({
           </div>
         ) : (
           <>
-            <ChatArea
-              messages={messages}
-              isDark={isDark}
-              isLoading={isLoading}
-            />
+            <div className="flex-1 relative z-10">
+              <ChatArea
+                messages={messages}
+                isDark={isDark}
+                isLoading={isLoading}
+              />
+            </div>
             {/* Chat Input - Always at bottom with background */}
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isDark={isDark}
-              isLoading={isLoading}
-            />
+            <div className="relative z-10">
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                isDark={isDark}
+                isLoading={isLoading}
+              />
+            </div>
           </>
         )}
       </div>

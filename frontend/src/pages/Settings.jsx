@@ -7,14 +7,24 @@ import { X, User, Globe, LogOut, Upload } from "lucide-react";
  * - Language settings
  * - Theme settings
  */
-const Settings = ({ isDark, setIsDark, isOpen, onClose, user, onLogout }) => {
+const Settings = ({
+  isDark,
+  setIsDark,
+  isOpen,
+  onClose,
+  user,
+  onLogout,
+  onUserUpdate,
+}) => {
   const [activeTab, setActiveTab] = useState("profile");
   const [profileData, setProfileData] = useState({
     username: user?.name || "",
     email: user?.email || "",
-    profilePicture: user?.avatar || null,
+    profilePicture: user?.avatar || user?.profilePicture || null,
   });
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem("aira_language") || "en";
+  });
 
   const handleProfileChange = (key, value) => {
     setProfileData((prev) => ({ ...prev, [key]: value }));
@@ -32,9 +42,36 @@ const Settings = ({ isDark, setIsDark, isOpen, onClose, user, onLogout }) => {
   };
 
   const handleSaveProfile = () => {
-    // TODO: Implement save profile logic
-    console.log("Profile saved:", profileData);
-    alert("Profile updated successfully!");
+    // Save profile data to localStorage and update user object
+    try {
+      const updatedUser = {
+        ...user,
+        name: profileData.username,
+        email: profileData.email,
+        avatar: profileData.profilePicture,
+        profilePicture: profileData.profilePicture,
+      };
+      localStorage.setItem("aira_user", JSON.stringify(updatedUser));
+
+      // Update user in parent component if callback provided
+      if (onUserUpdate) {
+        onUserUpdate(updatedUser);
+      }
+
+      console.log("Profile saved:", updatedUser);
+      alert("Profile updated successfully!");
+      onClose();
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      alert("Failed to save profile. Please try again.");
+    }
+  };
+
+  const handleLanguageChange = (langCode) => {
+    setLanguage(langCode);
+    localStorage.setItem("aira_language", langCode);
+    // You can add language change logic here
+    console.log("Language changed to:", langCode);
   };
 
   const handleLogout = () => {
@@ -263,15 +300,10 @@ const Settings = ({ isDark, setIsDark, isOpen, onClose, user, onLogout }) => {
                 {[
                   { code: "en", name: "English" },
                   { code: "id", name: "Bahasa Indonesia" },
-                  { code: "es", name: "Español" },
-                  { code: "fr", name: "Français" },
-                  { code: "de", name: "Deutsch" },
-                  { code: "ja", name: "日本語" },
-                  { code: "zh", name: "中文" },
                 ].map((lang) => (
                   <button
                     key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
+                    onClick={() => handleLanguageChange(lang.code)}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                       language === lang.code
                         ? isDark

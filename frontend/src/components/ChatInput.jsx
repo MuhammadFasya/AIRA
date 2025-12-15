@@ -29,11 +29,7 @@ const ChatInput = ({
   };
 
   return (
-    <div
-      className={`transition-colors duration-300 border-t ${
-        isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
-      } p-4 md:p-6`}
-    >
+    <div className="p-4 md:p-6">
       <div className="max-w-4xl mx-auto flex items-center gap-3">
         <input
           ref={inputRef}
@@ -52,21 +48,13 @@ const ChatInput = ({
         <button
           onClick={handleSendMessage}
           disabled={message.trim() === "" || isLoading}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
-            message.trim() !== "" && !isLoading
-              ? isDark
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-blue-500 hover:bg-blue-600"
-              : isDark
-                ? "bg-gray-800"
-                : "bg-gray-300"
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
           aria-label="Send message"
         >
           <img
             src={sendIconSrc}
             alt="send"
-            className="w-6 h-6 object-contain"
+            className="w-full h-full object-contain"
           />
         </button>
       </div>

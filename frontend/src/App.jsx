@@ -15,11 +15,31 @@ import "./index.css";
  */
 function App() {
   const [isDark, setIsDark] = useState(() => {
-    // Check system preference or localStorage
+    // Check localStorage first, then system preference
     const saved = localStorage.getItem("aira-theme");
     if (saved) return saved === "dark";
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleThemeChange = (e) => {
+      // Only update if user hasn't manually set a theme
+      const saved = localStorage.getItem("aira-theme");
+      if (!saved) {
+        setIsDark(e.matches);
+      }
+    };
+
+    // Add listener for system theme changes
+    mediaQuery.addEventListener("change", handleThemeChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleThemeChange);
+    };
+  }, []);
 
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar collapsed by default
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -76,6 +96,10 @@ function App() {
     localStorage.removeItem("aira_token");
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   const toggleSidebar = () => setSidebarOpen((s) => !s);
 
   return (
@@ -91,21 +115,25 @@ function App() {
           />
         )}
 
-        {/* Navigation Bar */}
-        <Navbar
-          isDark={isDark}
-          setIsDark={setIsDark}
-          logoSrc={logoSrc}
-          sidebarOpen={user ? sidebarOpen : false}
-        />
+        {/* Navigation Bar - Only show when user is logged in */}
+        {!isLoading && user && (
+          <Navbar
+            isDark={isDark}
+            setIsDark={setIsDark}
+            logoSrc={logoSrc}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
 
         {/* Main Content: show Login when not authenticated, otherwise Home */}
-        <main className="flex-1">
+        <main className={user ? "flex-1" : "flex-1 h-screen"}>
           {!isLoading && !user && (
             <Login
               onLogin={handleLogin}
               logoSrc={logoSrc}
               bgSrc={loadingBgSrc}
+              isDark={isDark}
+              setIsDark={setIsDark}
             />
           )}
 
@@ -128,6 +156,7 @@ function App() {
           onClose={() => setSettingsOpen(false)}
           user={user}
           onLogout={handleLogout}
+          onUserUpdate={handleUserUpdate}
         />
       </div>
     </div>
