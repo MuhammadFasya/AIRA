@@ -1,3 +1,0 @@
-Placeholder: History button asset
-Filename suggestion: btn-history.svg or png
-Function: opens history list of conversations

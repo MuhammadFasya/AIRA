@@ -12,7 +12,7 @@ All protected routes use JWT Bearer tokens.
 """
 import os
 import requests
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from models import db, User, Chat, chat_schema, chats_schema
@@ -51,28 +51,44 @@ def get_gemini_response(user_message: str) -> dict:
     """
     api_url = os.getenv('GEMINI_API_URL')
     api_key = os.getenv('GEMINI_API_KEY')
+    provider = os.getenv('GEMINI_PROVIDER', '').lower()
+    model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+    api_version = os.getenv('GEMINI_API_VERSION', 'v1beta')
 
-    if not api_url or not api_key:
-        # Development fallback: echo back the message with a gentle prompt.
+    # If API URL not provided but API key present, try to infer Google GL endpoint
+    if not api_url and api_key:
+        if provider == 'google' or (isinstance(api_key, str) and api_key.startswith('AIza')):
+            api_url = f'https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent'
+
+    # If neither URL nor key are available, fall back to local echo (dev mode)
+    if not api_url and not api_key:
         return {'reply': f"I heard: {user_message}", 'meta': {'source': 'local-echo'}}
 
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json',
-    }
-
-    # Build a conservative, provider-agnostic payload. Some Gemini
-    # endpoints require certain fields (like ids or subjects) to be
-    # strings. We'll ensure any numeric id-like fields are cast to
-    # strings before sending to avoid 4xx errors such as
-    # "Subject must be a string".
-    payload = {
-        # The simplest content wrapper: adapt later to your exact API.
-        'input': user_message,
-        # Optional tuning parameters (adjust per model/docs)
-        'temperature': float(os.getenv('GEMINI_TEMPERATURE', '0.7')),
-        'max_output_tokens': int(os.getenv('GEMINI_MAX_TOKENS', '512')),
-    }
+    # Build headers and payload depending on the provider/endpoint
+    if api_url and 'generativelanguage.googleapis.com' in api_url:
+        # Google Generative Language expects X-goog-api-key and `contents` payload
+        headers = {
+            'X-goog-api-key': api_key,
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            'contents': [
+                {'parts': [{'text': user_message}]}
+            ]
+        }
+    else:
+        # Generic provider (Bearer token expected)
+        headers = {
+            'Authorization': f'Bearer {api_key}' if api_key else None,
+            'Content-Type': 'application/json',
+        }
+        # Clean None
+        headers = {k: v for k, v in headers.items() if v}
+        payload = {
+            'input': user_message,
+            'temperature': float(os.getenv('GEMINI_TEMPERATURE', '0.7')),
+            'max_output_tokens': int(os.getenv('GEMINI_MAX_TOKENS', '512')),
+        }
 
     def _stringify_id_fields(obj):
         """Recursively convert numeric id-like fields to strings.
@@ -95,6 +111,12 @@ def get_gemini_response(user_message: str) -> dict:
     payload = _stringify_id_fields(payload)
 
     try:
+        # Log the call (do not log API key)
+        try:
+            current_app.logger.info('Calling Gemini API at %s', api_url)
+        except Exception:
+            pass
+
         resp = requests.post(api_url, headers=headers, json=payload, timeout=15)
         resp.raise_for_status()
         data = resp.json()
@@ -109,8 +131,62 @@ def get_gemini_response(user_message: str) -> dict:
         return {'reply': reply or 'Sorry — I could not parse the AI response.', 'meta': data}
 
     except Exception as exc:
+        # Log exception server-side for easier debugging (no secrets)
+        try:
+            current_app.logger.exception('Gemini API call failed')
+        except Exception:
+            pass
         # Do not crash the entire request if Gemini fails; return friendly message
-        return {'reply': "Aira is having trouble reaching the AI service right now. Please try again later.", 'error': str(exc)}
+        return {
+            'reply': "Aira is having trouble reaching the AI service right now. Please try again later.",
+            'error': str(exc),
+        }
+
+
+@chat_bp.route('/debug/gemini', methods=['GET'])
+def debug_gemini():
+    """Lightweight endpoint to check Gemini connectivity and config.
+
+    Returns whether GEMINI_API_URL and GEMINI_API_KEY are configured and a
+    short attempt to call the endpoint. This endpoint is intentionally
+    unprotected to make local debugging easier; do not expose it in
+    production without proper controls.
+    """
+    api_url = os.getenv('GEMINI_API_URL')
+    api_key = os.getenv('GEMINI_API_KEY')
+    provider = os.getenv('GEMINI_PROVIDER', '').lower()
+    model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+    api_version = os.getenv('GEMINI_API_VERSION', 'v1beta')
+
+    # Infer Google endpoint if key present but URL missing
+    if not api_url and api_key:
+        if provider == 'google' or (isinstance(api_key, str) and api_key.startswith('AIza')):
+            api_url = f'https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent'
+
+    if not api_url or not api_key:
+        return jsonify({'ok': False, 'reason': 'GEMINI_API_URL or GEMINI_API_KEY not set'}), 400
+
+    if 'generativelanguage.googleapis.com' in api_url:
+        headers = {'X-goog-api-key': api_key, 'Content-Type': 'application/json'}
+        test_payload = {'contents': [{'parts': [{'text': 'ping'}]}]}
+    else:
+        headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
+        test_payload = {'input': 'ping', 'temperature': 0.0, 'max_output_tokens': 16}
+
+    try:
+        resp = requests.post(api_url, headers=headers, json=test_payload, timeout=10)
+        status = resp.status_code
+        try:
+            body = resp.json()
+        except Exception:
+            body = {'text': resp.text[:200]}
+        return jsonify({'ok': True, 'status_code': status, 'body_preview': body}), 200
+    except Exception as exc:
+        try:
+            current_app.logger.exception('Gemini debug call failed')
+        except Exception:
+            pass
+        return jsonify({'ok': False, 'error': str(exc)}), 502
 
 
 @chat_bp.route('/chat', methods=['POST'])
@@ -128,6 +204,10 @@ def chat():
             return jsonify({'error': 'message is required'}), 400
 
         user_id = get_jwt_identity()
+        try:
+            user_id = int(user_id)
+        except Exception:
+            pass
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
@@ -194,6 +274,10 @@ def create_chat():
 def get_history(user_id: int):
     """Get chat history for a user. Only allowed if the JWT identity matches user_id."""
     requester = get_jwt_identity()
+    try:
+        requester = int(requester)
+    except Exception:
+        pass
     if requester != user_id:
         return jsonify({'error': 'Forbidden'}), 403
 
@@ -207,6 +291,10 @@ def update_chat(chat_id: int):
     """Update a chat message. Only the owner may update their chat entries."""
     try:
         user_id = get_jwt_identity()
+        try:
+            user_id = int(user_id)
+        except Exception:
+            pass
         chat = Chat.query.get(chat_id)
         if not chat:
             return jsonify({'error': 'Chat not found'}), 404
@@ -232,6 +320,10 @@ def update_chat(chat_id: int):
 def delete_chat(chat_id: int):
     try:
         user_id = get_jwt_identity()
+        try:
+            user_id = int(user_id)
+        except Exception:
+            pass
         chat = Chat.query.get(chat_id)
         if not chat:
             return jsonify({'error': 'Chat not found'}), 404
@@ -251,6 +343,10 @@ def delete_chat(chat_id: int):
 @jwt_required()
 def clear_chats(user_id: int):
     requester = get_jwt_identity()
+    try:
+        requester = int(requester)
+    except Exception:
+        pass
     if requester != user_id:
         return jsonify({'error': 'Forbidden'}), 403
     try:

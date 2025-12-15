@@ -1,3 +1,0 @@
-Placeholder: Dark background image
-Filename suggestion: background-dark.jpg (replace with actual background image)
-Notes: ensure good contrast with light text and avoid busy patterns.

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axiosClient from "../api/axiosClient";
 import Avatar from "../components/Avatar";
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, logoSrc, bgSrc }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,11 +26,22 @@ const Login = ({ onLogin }) => {
     }
   };
 
+  const wrapperStyle = bgSrc
+    ? {
+        backgroundImage: `url(${bgSrc})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : undefined;
+
   return (
-    <div className="flex-1 flex items-center justify-center">
+    <div
+      className="flex-1 flex items-center justify-center"
+      style={wrapperStyle}
+    >
       <div className="w-full max-w-md p-6 rounded-lg shadow-md bg-white dark:bg-gray-800">
         <div className="flex flex-col items-center gap-3 mb-4">
-          <Avatar alt="Aira" size={64} />
+          <Avatar src={logoSrc} alt="Aira" size={64} />
           <h2 className="text-xl font-semibold">Sign in to Aira</h2>
           <p className="text-sm text-gray-500">
             A friendly, empathetic AI companion

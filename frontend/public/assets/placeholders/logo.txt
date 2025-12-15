@@ -1,3 +1,0 @@
-Placeholder: Aira app logo
-Filename: logo.png (replace this file with actual logo image)
-Use square PNG/SVG optimized for 64x64 and 256x256.

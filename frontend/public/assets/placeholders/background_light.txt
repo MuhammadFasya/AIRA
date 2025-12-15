@@ -1,3 +1,0 @@
-Placeholder: Light background image
-Filename suggestion: background-light.jpg (replace with actual background image)
-Notes: use a calm gradient or illustration that reads well with dark text.

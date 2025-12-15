@@ -34,36 +34,38 @@ const Greeting = ({ isDark, userName }) => {
   };
 
   return (
-    <div className="text-center py-8 md:py-12">
-      <h1
-        className={`text-3xl md:text-4xl font-bold mb-3 ${
-          isDark ? "text-white" : "text-gray-900"
-        }`}
-      >
-        {getTimeGreeting()}
-        {userName ? `, ${userName}` : ""}
-      </h1>
-
-      <p
-        className={`text-lg md:text-xl font-medium ${
-          isDark ? "text-gray-300" : "text-gray-600"
-        }`}
-      >
-        {greeting}
-      </p>
-
-      <div className="mt-6 flex justify-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-blue-500" />
-        <div
-          className={`w-2 h-2 rounded-full ${
-            isDark ? "bg-gray-700" : "bg-gray-300"
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center py-8 md:py-12">
+        <h1
+          className={`text-3xl md:text-4xl font-bold mb-3 ${
+            isDark ? "text-white" : "text-gray-900"
           }`}
-        />
-        <div
-          className={`w-2 h-2 rounded-full ${
-            isDark ? "bg-gray-700" : "bg-gray-300"
+        >
+          {getTimeGreeting()}
+          {userName ? `, ${userName}` : ""}
+        </h1>
+
+        <p
+          className={`text-lg md:text-xl font-medium ${
+            isDark ? "text-gray-300" : "text-gray-600"
           }`}
-        />
+        >
+          {greeting}
+        </p>
+
+        <div className="mt-6 flex justify-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-blue-500" />
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isDark ? "bg-gray-700" : "bg-gray-300"
+            }`}
+          />
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isDark ? "bg-gray-700" : "bg-gray-300"
+            }`}
+          />
+        </div>
       </div>
     </div>
   );

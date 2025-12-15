@@ -6,9 +6,20 @@ import React from "react";
  * animation. This is shown before the login/signup flow or initial app
  * bootstrap completes.
  */
-const LoadingScreen = ({ logoSrc, title = "Aira", theme = "light" }) => {
+const LoadingScreen = ({ logoSrc, title = "Aira", theme = "light", bgSrc }) => {
+  const style = bgSrc
+    ? {
+        backgroundImage: `url(${bgSrc})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : {};
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={style}
+    >
       <div className="text-center">
         <div
           className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center mb-4 shadow-lg transition-colors duration-200 ${

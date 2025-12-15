@@ -1,157 +1,168 @@
-import React from 'react';
-import { Plus, Search, History, Settings, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import React from "react";
 
 /**
- * Sidebar Component
- * - Collapsible left navigation panel
- * - Contains: New Chat, Search, History, User Profile, Settings
- * - Smooth sliding animation on toggle
- * - Dark/Light theme support
+ * Sidebar Component - Expandable vertical navigation
+ * - Toggles between icon-only (collapsed) and icon+text (expanded)
+ * - Icon buttons: Sidebar toggle, New Chat, Search, History, Settings
+ * - Smooth expand/collapse animation
  */
-const Sidebar = ({
-  isOpen,
-  onToggle,
-  isDark,
-  onNewChat,
-  onSettings,
-  chatHistory = []
-}) => {
+const Sidebar = ({ isDark, onNewChat, onSettings, isOpen, onToggle }) => {
+  const themeFolder = isDark ? "Dark Mode" : "Light Mode";
+  const asset = (filename) => encodeURI(`/assets/${themeFolder}/${filename}`);
+
+  // Toggle button changes based on isOpen state
+  const toggleIconSrc = asset(
+    isOpen
+      ? isDark
+        ? "Moved - darkSidebar.svg"
+        : "moved-lightSidebar.png"
+      : isDark
+        ? "Idle - darkSidebar.svg"
+        : "idle-lightSidebar.png"
+  );
+
   return (
-    <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-30"
-          onClick={onToggle}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-16 bottom-0 w-64 transition-transform duration-300 ease-in-out z-40 ${
-          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
-        } border-r overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+    <aside
+      className={`fixed left-0 top-16 bottom-0 flex flex-col py-4 gap-4 z-30 transition-all duration-500 ease-in-out ${
+        isDark ? "bg-gray-900" : "bg-[#F9FEFF]"
+      } ${isOpen ? "w-64" : "w-20"}`}
+    >
+      {/* Sidebar Toggle Button */}
+      <button
+        onClick={onToggle}
+        className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
+          isDark
+            ? "bg-gray-800 hover:bg-gray-700"
+            : "bg-white hover:bg-gray-100 shadow-sm"
+        } ${isOpen ? "px-4" : "justify-center"}`}
+        aria-label="Toggle sidebar"
+        title="Toggle sidebar"
       >
-        {/* New Chat Button */}
-        <div className="p-4 border-b border-gray-700">
-          <button
-            onClick={onNewChat}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-              isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
+        <img
+          src={toggleIconSrc}
+          alt="toggle"
+          className="w-6 h-6 object-contain flex-shrink-0 transition-transform duration-500 ease-in-out"
+        />
+        {isOpen && (
+          <span
+            className={`text-sm font-medium whitespace-nowrap transition-opacity duration-500 ease-in-out ${
+              isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            <Plus size={18} />
+            Menu
+          </span>
+        )}
+      </button>
+
+      {/* New Chat Button */}
+      <button
+        onClick={() => onNewChat && onNewChat()}
+        className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
+          isDark
+            ? "bg-gray-800 hover:bg-gray-700"
+            : "bg-white hover:bg-gray-100 shadow-sm"
+        } ${isOpen ? "px-4" : "justify-center"}`}
+        aria-label="New chat"
+        title="New chat"
+      >
+        <img
+          src={asset(isDark ? "Newchat - Dark.svg" : "newChat-Light.png")}
+          alt="new chat"
+          className="w-6 h-6 object-contain flex-shrink-0"
+        />
+        {isOpen && (
+          <span
+            className={`text-sm font-medium whitespace-nowrap transition-opacity duration-500 ease-in-out ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
             New Chat
-          </button>
-        </div>
+          </span>
+        )}
+      </button>
 
-        {/* Search Section */}
-        <div className="p-4 border-b border-gray-700">
-          <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-              isDark
-                ? 'bg-gray-800 border border-gray-700'
-                : 'bg-gray-100 border border-gray-300'
+      {/* Search Button */}
+      <button
+        className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
+          isDark
+            ? "bg-gray-800 hover:bg-gray-700"
+            : "bg-white hover:bg-gray-100 shadow-sm"
+        } ${isOpen ? "px-4" : "justify-center"}`}
+        aria-label="Search"
+        title="Search"
+      >
+        <img
+          src={asset(isDark ? "Search - Dark.svg" : "Search-Light.png")}
+          alt="search"
+          className="w-6 h-6 object-contain flex-shrink-0"
+        />
+        {isOpen && (
+          <span
+            className={`text-sm font-medium whitespace-nowrap transition-opacity duration-500 ease-in-out ${
+              isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            <Search size={16} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
-            <input
-              type="text"
-              placeholder="Search chats..."
-              className={`flex-1 bg-transparent outline-none text-sm ${
-                isDark
-                  ? 'placeholder-gray-600 text-white'
-                  : 'placeholder-gray-500 text-gray-900'
-              }`}
-            />
-          </div>
-        </div>
+            Search
+          </span>
+        )}
+      </button>
 
-        {/* History Section */}
-        <div className="p-4 border-b border-gray-700">
-          <div className="flex items-center gap-2 mb-3">
-            <History size={16} />
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Recent Chats
-            </span>
-          </div>
-
-          {chatHistory.length > 0 ? (
-            <ul className="space-y-2">
-              {chatHistory.slice(0, 5).map((chat, index) => (
-                <li key={index}>
-                  <button
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors duration-200 ${
-                      isDark
-                        ? 'hover:bg-gray-800 text-gray-300'
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {chat}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p
-              className={`text-xs ${
-                isDark ? 'text-gray-600' : 'text-gray-500'
-              }`}
-            >
-              No chat history yet
-            </p>
-          )}
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Bottom Actions */}
-        <div className="p-4 border-t border-gray-700 space-y-2">
-          {/* User Profile Button */}
-          <button
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-200 ${
-              isDark
-                ? 'hover:bg-gray-800 text-gray-300'
-                : 'hover:bg-gray-100 text-gray-700'
+      {/* History Button */}
+      <button
+        className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
+          isDark
+            ? "bg-gray-800 hover:bg-gray-700"
+            : "bg-white hover:bg-gray-100 shadow-sm"
+        } ${isOpen ? "px-4" : "justify-center"}`}
+        aria-label="History"
+        title="History"
+      >
+        <img
+          src={asset(isDark ? "History - Dark.svg" : "history-Light.png")}
+          alt="history"
+          className="w-6 h-6 object-contain flex-shrink-0"
+        />
+        {isOpen && (
+          <span
+            className={`text-sm font-medium whitespace-nowrap transition-opacity duration-500 ease-in-out ${
+              isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            <User size={18} />
-            <span className="text-sm font-medium">Profile</span>
-          </button>
+            History
+          </span>
+        )}
+      </button>
 
-          {/* Settings Button */}
-          <button
-            onClick={onSettings}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-200 ${
-              isDark
-                ? 'hover:bg-gray-800 text-gray-300'
-                : 'hover:bg-gray-100 text-gray-700'
+      {/* Spacer to push bottom buttons down */}
+      <div className="flex-1" />
+
+      {/* Settings Button */}
+      <button
+        onClick={() => onSettings && onSettings()}
+        className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
+          isDark
+            ? "bg-gray-800 hover:bg-gray-700"
+            : "bg-white hover:bg-gray-100 shadow-sm"
+        } ${isOpen ? "px-4" : "justify-center"}`}
+        aria-label="Settings"
+        title="Settings"
+      >
+        <img
+          src={asset(isDark ? "Setting - Dark.svg" : "setting-Light.png")}
+          alt="settings"
+          className="w-6 h-6 object-contain flex-shrink-0"
+        />
+        {isOpen && (
+          <span
+            className={`text-sm font-medium whitespace-nowrap transition-opacity duration-500 ease-in-out ${
+              isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            <Settings size={18} />
-            <span className="text-sm font-medium">Settings</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Toggle Button (Desktop only, when closed) */}
-      {!isOpen && (
-        <button
-          onClick={onToggle}
-          className={`fixed left-16 top-20 z-50 p-1 rounded-r-lg transition-colors duration-200 hidden md:block ${
-            isDark
-              ? 'bg-gray-800 hover:bg-gray-700 text-gray-400'
-              : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
-          }`}
-          aria-label="Open sidebar"
-        >
-          <ChevronRight size={18} />
-        </button>
-      )}
-    </>
+            Settings
+          </span>
+        )}
+      </button>
+    </aside>
   );
 };
 

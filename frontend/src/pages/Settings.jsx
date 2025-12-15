@@ -1,33 +1,46 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState } from "react";
+import { X, User, Globe, LogOut, Upload } from "lucide-react";
 
 /**
- * Settings Modal/Page
- * - User preferences configuration
- * - Theme settings, avatar selection, chat history management
- * - Modal overlay with backdrop blur
+ * Settings Modal
+ * - Profile settings: email, username, profile picture, logout
+ * - Language settings
+ * - Theme settings
  */
-const Settings = ({ isDark, setIsDark, isOpen, onClose }) => {
-  const [settings, setSettings] = useState({
-    theme: isDark ? 'dark' : 'light',
-    avatar: 'default',
-    fontSize: 'medium',
-    notifications: true,
+const Settings = ({ isDark, setIsDark, isOpen, onClose, user, onLogout }) => {
+  const [activeTab, setActiveTab] = useState("profile");
+  const [profileData, setProfileData] = useState({
+    username: user?.name || "",
+    email: user?.email || "",
+    profilePicture: user?.avatar || null,
   });
+  const [language, setLanguage] = useState("en");
 
-  const handleSettingChange = (key, value) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const handleProfileChange = (key, value) => {
+    setProfileData((prev) => ({ ...prev, [key]: value }));
+  };
 
-    // Apply theme change immediately
-    if (key === 'theme') {
-      setIsDark(value === 'dark');
+  const handleProfilePictureUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleProfileChange("profilePicture", reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleClearHistory = () => {
-    if (window.confirm('Are you sure you want to clear all chat history?')) {
-      // TODO: Implement clear history logic
-      console.log('Chat history cleared');
+  const handleSaveProfile = () => {
+    // TODO: Implement save profile logic
+    console.log("Profile saved:", profileData);
+    alert("Profile updated successfully!");
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to log out?")) {
+      onLogout && onLogout();
+      onClose();
     }
   };
 
@@ -43,19 +56,19 @@ const Settings = ({ isDark, setIsDark, isOpen, onClose }) => {
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-md rounded-lg shadow-2xl overflow-hidden ${
-          isDark ? 'bg-gray-800' : 'bg-white'
+        className={`relative w-full max-w-2xl rounded-lg shadow-2xl overflow-hidden ${
+          isDark ? "bg-gray-800" : "bg-white"
         }`}
       >
         {/* Header */}
         <div
           className={`flex items-center justify-between p-6 border-b ${
-            isDark ? 'border-gray-700' : 'border-gray-200'
+            isDark ? "border-gray-700" : "border-gray-200"
           }`}
         >
           <h2
             className={`text-xl font-bold ${
-              isDark ? 'text-white' : 'text-gray-900'
+              isDark ? "text-white" : "text-gray-900"
             }`}
           >
             Settings
@@ -64,160 +77,217 @@ const Settings = ({ isDark, setIsDark, isOpen, onClose }) => {
             onClick={onClose}
             className={`p-1 rounded-lg transition-colors duration-200 ${
               isDark
-                ? 'hover:bg-gray-700 text-gray-400'
-                : 'hover:bg-gray-100 text-gray-600'
+                ? "hover:bg-gray-700 text-gray-400"
+                : "hover:bg-gray-100 text-gray-600"
             }`}
           >
             <X size={24} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6 max-h-96 overflow-y-auto">
-          {/* Theme Setting */}
-          <div>
-            <label
-              className={`block text-sm font-semibold mb-3 ${
-                isDark ? 'text-gray-300' : 'text-gray-700'
-              }`}
-            >
-              Theme
-            </label>
-            <div className="flex gap-3">
-              {['light', 'dark'].map((theme) => (
-                <button
-                  key={theme}
-                  onClick={() => handleSettingChange('theme', theme)}
-                  className={`flex-1 py-2 px-3 rounded-lg capitalize font-medium transition-all duration-200 ${
-                    settings.theme === theme
-                      ? 'bg-blue-500 text-white'
-                      : isDark
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {theme}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Avatar Setting */}
-          <div>
-            <label
-              className={`block text-sm font-semibold mb-3 ${
-                isDark ? 'text-gray-300' : 'text-gray-700'
-              }`}
-            >
-              Avatar
-            </label>
-            <select
-              value={settings.avatar}
-              onChange={(e) => handleSettingChange('avatar', e.target.value)}
-              className={`w-full px-3 py-2 rounded-lg border outline-none transition-colors duration-200 ${
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
-            >
-              <option value="default">Default (Blue)</option>
-              <option value="purple">Purple</option>
-              <option value="pink">Pink</option>
-              <option value="green">Green</option>
-            </select>
-          </div>
-
-          {/* Font Size Setting */}
-          <div>
-            <label
-              className={`block text-sm font-semibold mb-3 ${
-                isDark ? 'text-gray-300' : 'text-gray-700'
-              }`}
-            >
-              Font Size
-            </label>
-            <div className="flex gap-3">
-              {['small', 'medium', 'large'].map((size) => (
-                <button
-                  key={size}
-                  onClick={() => handleSettingChange('fontSize', size)}
-                  className={`flex-1 py-2 px-3 rounded-lg capitalize font-medium text-sm transition-all duration-200 ${
-                    settings.fontSize === size
-                      ? 'bg-blue-500 text-white'
-                      : isDark
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Notifications Setting */}
-          <div className="flex items-center justify-between">
-            <label
-              className={`text-sm font-semibold ${
-                isDark ? 'text-gray-300' : 'text-gray-700'
-              }`}
-            >
-              Notifications
-            </label>
-            <button
-              onClick={() =>
-                handleSettingChange('notifications', !settings.notifications)
-              }
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                settings.notifications
-                  ? 'bg-blue-500'
-                  : isDark
-                  ? 'bg-gray-700'
-                  : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                  settings.notifications ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div
-            className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
-          />
-
-          {/* Clear History Button */}
-          <button
-            onClick={handleClearHistory}
-            className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
-              isDark
-                ? 'bg-red-900 hover:bg-red-800 text-red-100'
-                : 'bg-red-100 hover:bg-red-200 text-red-700'
-            }`}
-          >
-            Clear Chat History
-          </button>
-        </div>
-
-        {/* Footer */}
+        {/* Tabs */}
         <div
-          className={`p-6 border-t ${
-            isDark ? 'border-gray-700' : 'border-gray-200'
+          className={`flex border-b ${
+            isDark ? "border-gray-700" : "border-gray-200"
           }`}
         >
           <button
-            onClick={onClose}
-            className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
-              isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            onClick={() => setActiveTab("profile")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-medium transition-colors ${
+              activeTab === "profile"
+                ? isDark
+                  ? "bg-gray-700 text-white border-b-2 border-blue-500"
+                  : "bg-gray-100 text-gray-900 border-b-2 border-blue-500"
+                : isDark
+                  ? "text-gray-400 hover:bg-gray-750"
+                  : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            Done
+            <User size={18} />
+            Profile
           </button>
+          <button
+            onClick={() => setActiveTab("language")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-medium transition-colors ${
+              activeTab === "language"
+                ? isDark
+                  ? "bg-gray-700 text-white border-b-2 border-blue-500"
+                  : "bg-gray-100 text-gray-900 border-b-2 border-blue-500"
+                : isDark
+                  ? "text-gray-400 hover:bg-gray-750"
+                  : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <Globe size={18} />
+            Language
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6 max-h-96 overflow-y-auto">
+          {/* Profile Settings */}
+          {activeTab === "profile" && (
+            <div className="space-y-6">
+              {/* Profile Picture */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                  {profileData.profilePicture ? (
+                    <img
+                      src={profileData.profilePicture}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={`w-24 h-24 rounded-full flex items-center justify-center ${
+                        isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
+                    >
+                      <User
+                        size={40}
+                        className={isDark ? "text-gray-400" : "text-gray-500"}
+                      />
+                    </div>
+                  )}
+                  <label
+                    htmlFor="profile-upload"
+                    className={`absolute bottom-0 right-0 p-2 rounded-full cursor-pointer transition-colors ${
+                      isDark
+                        ? "bg-blue-600 hover:bg-blue-700"
+                        : "bg-blue-500 hover:bg-blue-600"
+                    }`}
+                  >
+                    <Upload size={16} className="text-white" />
+                    <input
+                      id="profile-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p
+                  className={`text-sm ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Click to upload profile picture
+                </p>
+              </div>
+
+              {/* Username */}
+              <div>
+                <label
+                  className={`block text-sm font-semibold mb-2 ${
+                    isDark ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={profileData.username}
+                  onChange={(e) =>
+                    handleProfileChange("username", e.target.value)
+                  }
+                  className={`w-full px-4 py-2 rounded-lg outline-none transition-colors ${
+                    isDark
+                      ? "bg-gray-700 text-white border border-gray-600 focus:border-blue-500"
+                      : "bg-gray-100 text-gray-900 border border-gray-300 focus:border-blue-500"
+                  }`}
+                  placeholder="Enter your username"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label
+                  className={`block text-sm font-semibold mb-2 ${
+                    isDark ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) => handleProfileChange("email", e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg outline-none transition-colors ${
+                    isDark
+                      ? "bg-gray-700 text-white border border-gray-600 focus:border-blue-500"
+                      : "bg-gray-100 text-gray-900 border border-gray-300 focus:border-blue-500"
+                  }`}
+                  placeholder="Enter your email"
+                />
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSaveProfile}
+                className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                  isDark
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                }`}
+              >
+                Save Changes
+              </button>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                  isDark
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                }`}
+              >
+                <LogOut size={18} />
+                Log Out
+              </button>
+            </div>
+          )}
+
+          {/* Language Settings */}
+          {activeTab === "language" && (
+            <div className="space-y-4">
+              <p
+                className={`text-sm ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Select your preferred language
+              </p>
+              <div className="space-y-2">
+                {[
+                  { code: "en", name: "English" },
+                  { code: "id", name: "Bahasa Indonesia" },
+                  { code: "es", name: "Español" },
+                  { code: "fr", name: "Français" },
+                  { code: "de", name: "Deutsch" },
+                  { code: "ja", name: "日本語" },
+                  { code: "zh", name: "中文" },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                      language === lang.code
+                        ? isDark
+                          ? "bg-blue-600 text-white"
+                          : "bg-blue-500 text-white"
+                        : isDark
+                          ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {lang.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

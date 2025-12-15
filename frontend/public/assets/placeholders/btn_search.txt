@@ -1,3 +1,0 @@
-Placeholder: Search button asset
-Filename suggestion: btn-search.svg or png
-Function: opens chat search input / filters chat history

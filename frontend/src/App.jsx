@@ -21,7 +21,7 @@ function App() {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar collapsed by default
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   // Current authenticated user (null when not signed in)
@@ -51,6 +51,16 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
+  // Theme-aware asset paths (folders in public/assets contain spaces)
+  const themeFolder = isDark ? "Dark Mode" : "Light Mode";
+  const logoSrc = encodeURI(`/assets/${themeFolder}/Aira.png`);
+  const loadingBgSrc = encodeURI(
+    `/assets/${themeFolder}/${isDark ? "Loading and Login - DarkBackground.svg" : "Loading and Login-LightBackground.png"}`
+  );
+  const homeBgSrc = encodeURI(
+    `/assets/${themeFolder}/${isDark ? "Home - DarkBackground.svg" : "Home-LightBackground.svg"}`
+  );
+
   const handleLogin = (userObj) => {
     setUser(userObj);
     try {
@@ -66,27 +76,48 @@ function App() {
     localStorage.removeItem("aira_token");
   };
 
+  const toggleSidebar = () => setSidebarOpen((s) => !s);
+
   return (
     <div className={isDark ? "dark" : ""}>
       <div
         className={`w-full h-screen flex flex-col transition-colors duration-300 ${isDark ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}
       >
-        {isLoading && <LoadingScreen theme={isDark ? "dark" : "light"} />}
+        {isLoading && (
+          <LoadingScreen
+            theme={isDark ? "dark" : "light"}
+            logoSrc={logoSrc}
+            bgSrc={loadingBgSrc}
+          />
+        )}
 
         {/* Navigation Bar */}
         <Navbar
           isDark={isDark}
           setIsDark={setIsDark}
-          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-          user={user}
-          onLogout={handleLogout}
+          logoSrc={logoSrc}
+          sidebarOpen={user ? sidebarOpen : false}
         />
 
         {/* Main Content: show Login when not authenticated, otherwise Home */}
         <main className="flex-1">
-          {!isLoading && !user && <Login onLogin={handleLogin} />}
+          {!isLoading && !user && (
+            <Login
+              onLogin={handleLogin}
+              logoSrc={logoSrc}
+              bgSrc={loadingBgSrc}
+            />
+          )}
 
-          {!isLoading && user && <Home isDark={isDark} user={user} />}
+          {!isLoading && user && (
+            <Home
+              isDark={isDark}
+              user={user}
+              sidebarOpen={sidebarOpen}
+              onToggleSidebar={toggleSidebar}
+              onOpenSettings={() => setSettingsOpen(true)}
+            />
+          )}
         </main>
 
         {/* Settings Modal */}
@@ -95,6 +126,8 @@ function App() {
           setIsDark={setIsDark}
           isOpen={settingsOpen}
           onClose={() => setSettingsOpen(false)}
+          user={user}
+          onLogout={handleLogout}
         />
       </div>
     </div>

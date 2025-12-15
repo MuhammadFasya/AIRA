@@ -12,14 +12,25 @@ import axios from "axios";
  * - Handles communication with Flask backend
  * - Responsive grid layout with sidebar
  */
-const Home = ({ isDark, user }) => {
+const Home = ({
+  isDark,
+  user,
+  sidebarOpen,
+  onToggleSidebar,
+  onOpenSettings,
+}) => {
   const [messages, setMessages] = useState([]);
   // Simulated current user profile (replace with real auth later)
+  const themeFolder = isDark ? "Dark Mode" : "Light Mode";
+  const avatarDefault = encodeURI(
+    `/assets/${themeFolder}/${isDark ? "aiAvatar - Darkbackground.png" : "aiAvatar - Light.png"}`
+  );
+
   const [userProfile] = useState({
     name: user?.name || "You",
-    avatar: user?.avatar || null, // e.g. '/public/avatar.jpg' or remote URL
+    avatar: user?.avatar || avatarDefault, // theme-aware default avatar
   });
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
 
@@ -103,42 +114,67 @@ const Home = ({ isDark, user }) => {
     try {
       await axios.post(`${API_BASE_URL}/reset`);
       setMessages([]);
-      setSidebarOpen(false);
     } catch (error) {
       console.error("Error resetting chat:", error);
       setMessages([]);
-      setSidebarOpen(false);
     }
   };
 
+  // Background image path based on theme
+  const backgroundImagePath = encodeURI(
+    `/assets/${themeFolder}/${isDark ? "Home - DarkBackground.svg" : "Home-LightBackground.svg"}`
+  );
+
   return (
-    <div className="flex h-[calc(100vh-64px)]">
+    <div className="flex h-[calc(100vh-64px)] relative">
       {/* Sidebar */}
       <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
         isDark={isDark}
         onNewChat={handleNewChat}
-        chatHistory={chatHistory}
+        onSettings={onOpenSettings}
+        isOpen={sidebarOpen}
+        onToggle={onToggleSidebar}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col md:ml-64">
+      <div
+        className={`flex-1 flex flex-col relative transition-all duration-500 ease-in-out ${sidebarOpen ? "ml-64" : "ml-20"}`}
+      >
+        {/* Background Layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('${backgroundImagePath}')` }}
+        />
+
         {/* Greeting or Chat Area */}
         {messages.length === 0 ? (
-          <div className="flex-1 overflow-y-auto">
-            <Greeting isDark={isDark} userName={userProfile.name} />
+          <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-10">
+            <div className="w-full max-w-4xl">
+              <Greeting isDark={isDark} userName={userProfile.name} />
+              <div className="mt-8">
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  isDark={isDark}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
           </div>
         ) : (
-          <ChatArea messages={messages} isDark={isDark} isLoading={isLoading} />
+          <>
+            <ChatArea
+              messages={messages}
+              isDark={isDark}
+              isLoading={isLoading}
+            />
+            {/* Chat Input - Always at bottom with background */}
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isDark={isDark}
+              isLoading={isLoading}
+            />
+          </>
         )}
-
-        {/* Chat Input */}
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          isDark={isDark}
-          isLoading={isLoading}
-        />
       </div>
     </div>
   );
