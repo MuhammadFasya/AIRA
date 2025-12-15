@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, User, Globe, LogOut, Upload } from "lucide-react";
+import { useTranslation } from "../utils/translations";
 
 /**
  * Settings Modal
@@ -15,6 +16,8 @@ const Settings = ({
   user,
   onLogout,
   onUserUpdate,
+  language: propLanguage,
+  onLanguageChange,
 }) => {
   const [activeTab, setActiveTab] = useState("profile");
   const [profileData, setProfileData] = useState({
@@ -22,9 +25,11 @@ const Settings = ({
     email: user?.email || "",
     profilePicture: user?.avatar || user?.profilePicture || null,
   });
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("aira_language") || "en";
-  });
+
+  // Use language from props or fallback to localStorage
+  const language =
+    propLanguage || localStorage.getItem("aira_language") || "en";
+  const { t } = useTranslation(language);
 
   const handleProfileChange = (key, value) => {
     setProfileData((prev) => ({ ...prev, [key]: value }));
@@ -68,9 +73,10 @@ const Settings = ({
   };
 
   const handleLanguageChange = (langCode) => {
-    setLanguage(langCode);
     localStorage.setItem("aira_language", langCode);
-    // You can add language change logic here
+    if (onLanguageChange) {
+      onLanguageChange(langCode);
+    }
     console.log("Language changed to:", langCode);
   };
 
@@ -108,7 +114,7 @@ const Settings = ({
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            Settings
+            {t("settingsTitle")}
           </h2>
           <button
             onClick={onClose}
@@ -141,7 +147,7 @@ const Settings = ({
             }`}
           >
             <User size={18} />
-            Profile
+            {t("profileTab")}
           </button>
           <button
             onClick={() => setActiveTab("language")}
@@ -156,7 +162,7 @@ const Settings = ({
             }`}
           >
             <Globe size={18} />
-            Language
+            {t("languageTab")}
           </button>
         </div>
 

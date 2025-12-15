@@ -44,6 +44,12 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar collapsed by default
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Language state
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem("aira_language") || "en";
+  });
+
   // Current authenticated user (null when not signed in)
   const [user, setUser] = useState(() => {
     try {
@@ -144,6 +150,7 @@ function App() {
               sidebarOpen={sidebarOpen}
               onToggleSidebar={toggleSidebar}
               onOpenSettings={() => setSettingsOpen(true)}
+              language={language}
             />
           )}
         </main>
@@ -157,6 +164,8 @@ function App() {
           user={user}
           onLogout={handleLogout}
           onUserUpdate={handleUserUpdate}
+          language={language}
+          onLanguageChange={setLanguage}
         />
       </div>
     </div>

@@ -53,6 +53,22 @@ def create_app(config_override: dict | None = None) -> Flask:
     bcrypt.init_app(app)
     jwt.init_app(app)
 
+    # JWT error handlers for debugging
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error_string):
+        print(f"JWT ERROR - Invalid token: {error_string}")
+        return jsonify({'error': 'Invalid token', 'details': error_string}), 422
+
+    @jwt.unauthorized_loader
+    def unauthorized_callback(error_string):
+        print(f"JWT ERROR - Unauthorized: {error_string}")
+        return jsonify({'error': 'Missing Authorization header', 'details': error_string}), 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        print(f"JWT ERROR - Expired token")
+        return jsonify({'error': 'Token has expired'}), 401
+
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(chat_bp, url_prefix='')  # chat routes live at /chat*

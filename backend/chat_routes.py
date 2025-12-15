@@ -126,7 +126,17 @@ def get_gemini_response(user_message: str) -> dict:
         if not reply:
             # Some APIs return nested structures
             if isinstance(data.get('candidates'), list) and len(data['candidates']) > 0:
-                reply = data['candidates'][0].get('content') or data['candidates'][0]
+                content = data['candidates'][0].get('content')
+                if content:
+                    # Extract text from parts array
+                    if isinstance(content, dict) and 'parts' in content:
+                        parts = content.get('parts', [])
+                        if parts and isinstance(parts, list) and len(parts) > 0:
+                            reply = parts[0].get('text', '')
+                    else:
+                        reply = content
+                else:
+                    reply = data['candidates'][0]
 
         return {'reply': reply or 'Sorry — I could not parse the AI response.', 'meta': data}
 
@@ -198,18 +208,25 @@ def chat():
     Returns: { aira_reply, sentiment, user_message, chat_records }
     """
     try:
+        print("=== CHAT ENDPOINT CALLED ===")
         data = request.get_json() or {}
+        print(f"Received data: {data}")
         message = (data.get('message') or '').strip()
+        print(f"Message: '{message}'")
         if not message:
+            print("ERROR: Empty message")
             return jsonify({'error': 'message is required'}), 400
 
         user_id = get_jwt_identity()
+        print(f"JWT user_id: {user_id}")
         try:
             user_id = int(user_id)
         except Exception:
             pass
         user = User.query.get(user_id)
+        print(f"User found: {user}")
         if not user:
+            print("ERROR: User not found")
             return jsonify({'error': 'User not found'}), 404
 
         # Optional sentiment analysis
@@ -219,25 +236,36 @@ def chat():
         user_chat = Chat(user_id=user.id, message=message, sender='user')
         db.session.add(user_chat)
         db.session.commit()
+        print(f"User message saved: {user_chat.id}")
 
         # Call Gemini
+        print("Calling Gemini API...")
         ai_resp = get_gemini_response(message)
+        print(f"Gemini response: {ai_resp}")
         aira_reply = ai_resp.get('reply') if isinstance(ai_resp, dict) else str(ai_resp)
+        print(f"Aira reply: '{aira_reply}'")
 
         # Save Aira's reply
         aira_chat = Chat(user_id=user.id, message=aira_reply, sender='aira')
         db.session.add(aira_chat)
         db.session.commit()
 
-        # Return both saved records
-        return jsonify({
-            'user_message': user_chat.to_dict(),
-            'aira_reply': aira_chat.to_dict(),
+        # Count chat history for this user
+        history_count = Chat.query.filter_by(user_id=user.id).count()
+
+        # Return simplified response for frontend
+        response_data = {
+            'response': aira_reply,
             'sentiment': sentiment,
-            'ai_meta': ai_resp.get('meta') if isinstance(ai_resp, dict) else None,
-        }), 200
+            'history_length': history_count,
+        }
+        print(f"Returning response: {response_data}")
+        return jsonify(response_data), 200
 
     except Exception as exc:
+        print(f"ERROR in chat endpoint: {exc}")
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return jsonify({'error': 'Chat processing failed', 'details': str(exc)}), 500
 

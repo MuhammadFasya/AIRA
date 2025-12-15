@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "../utils/translations";
 
 /**
  * Greeting Component
@@ -6,7 +7,8 @@ import React, { useState, useEffect } from "react";
  * - Shows current time and user-friendly message
  * - Rotates between predefined empathetic greetings
  */
-const Greeting = ({ isDark, userName }) => {
+const Greeting = ({ isDark, userName, language = "en" }) => {
+  const { t } = useTranslation(language);
   const greetings = [
     "How's your day?",
     "Hello there!",
@@ -41,8 +43,7 @@ const Greeting = ({ isDark, userName }) => {
             isDark ? "text-white" : "text-gray-900"
           }`}
         >
-          {getTimeGreeting()}
-          {userName ? `, ${userName}` : ""}
+          {t("greetingTitle")}
         </h1>
 
         <p
@@ -50,7 +51,7 @@ const Greeting = ({ isDark, userName }) => {
             isDark ? "text-gray-300" : "text-gray-600"
           }`}
         >
-          {greeting}
+          {t("greetingSubtitle")}
         </p>
       </div>
     </div>

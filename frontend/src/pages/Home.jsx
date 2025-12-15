@@ -3,7 +3,9 @@ import Sidebar from "../components/Sidebar";
 import ChatArea from "../components/ChatArea";
 import ChatInput from "../components/ChatInput";
 import Greeting from "../components/Greeting";
-import axios from "axios";
+import SearchModal from "../components/SearchModal";
+import HistoryModal from "../components/HistoryModal";
+import axiosClient from "../api/axiosClient";
 
 /**
  * Home Page
@@ -51,9 +53,8 @@ const Home = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
-
-  // API Base URL - Change this to your Flask backend URL
-  const API_BASE_URL = "http://localhost:5000";
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
   /**
    * Send message to backend and get response
@@ -76,7 +77,7 @@ const Home = ({
 
     try {
       // Send message to Flask backend
-      const response = await axios.post(`${API_BASE_URL}/chat`, {
+      const response = await axiosClient.post("/chat", {
         message: userMessage,
       });
 
@@ -130,7 +131,7 @@ const Home = ({
    */
   const handleNewChat = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/reset`);
+      await axiosClient.post("/reset");
       setMessages([]);
     } catch (error) {
       console.error("Error resetting chat:", error);
@@ -152,23 +153,30 @@ const Home = ({
         onSettings={onOpenSettings}
         isOpen={sidebarOpen}
         onToggle={onToggleSidebar}
+        onSearch={() => setSearchModalOpen(true)}
+        onHistory={() => setHistoryModalOpen(true)}
       />
 
       {/* Main Content Area */}
       <div
         className={`flex-1 flex flex-col relative transition-all duration-500 ease-in-out ${sidebarOpen ? "ml-64" : "ml-20"}`}
+        style={{
+          backgroundImage: `url('${backgroundImagePath}')`,
+          backgroundAttachment: "fixed",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
       >
-        {/* Background Layer */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('${backgroundImagePath}')` }}
-        />
-
         {/* Greeting or Chat Area */}
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-10">
             <div className="w-full max-w-4xl">
-              <Greeting isDark={isDark} userName={userProfile.name} />
+              <Greeting
+                isDark={isDark}
+                userName={userProfile.name}
+                language={language}
+              />
               <div className="mt-8">
                 <ChatInput
                   onSendMessage={handleSendMessage}
@@ -198,6 +206,20 @@ const Home = ({
           </>
         )}
       </div>
+
+      {/* Modals */}
+      <SearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        messages={messages}
+        isDark={isDark}
+      />
+      <HistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        chatHistory={chatHistory}
+        isDark={isDark}
+      />
     </div>
   );
 };

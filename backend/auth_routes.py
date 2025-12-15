@@ -76,9 +76,9 @@ def login():
         if not user or not bcrypt.check_password_hash(user.password_hash, password):
             return jsonify({'error': 'Invalid credentials'}), 401
 
-        # Create JWT token; include user id as identity (integer)
+        # Create JWT token; convert user id to string for JWT identity
         expires = int(os.getenv('JWT_EXP_DAYS', '7'))
-        access_token = create_access_token(identity=user.id, expires_delta=timedelta(days=expires))
+        access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=expires))
 
         return jsonify({'access_token': access_token, 'user': user.to_dict()}), 200
 

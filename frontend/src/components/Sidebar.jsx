@@ -6,7 +6,15 @@ import React from "react";
  * - Icon buttons: Sidebar toggle, New Chat, Search, History, Settings
  * - Smooth expand/collapse animation
  */
-const Sidebar = ({ isDark, onNewChat, onSettings, isOpen, onToggle }) => {
+const Sidebar = ({
+  isDark,
+  onNewChat,
+  onSettings,
+  isOpen,
+  onToggle,
+  onSearch,
+  onHistory,
+}) => {
   const themeFolder = isDark ? "Dark Mode" : "Light Mode";
   const asset = (filename) => encodeURI(`/assets/${themeFolder}/${filename}`);
 
@@ -83,6 +91,7 @@ const Sidebar = ({ isDark, onNewChat, onSettings, isOpen, onToggle }) => {
 
       {/* Search Button */}
       <button
+        onClick={() => onSearch && onSearch()}
         className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
           isDark
             ? "bg-gray-800 hover:bg-gray-700"
@@ -109,6 +118,7 @@ const Sidebar = ({ isDark, onNewChat, onSettings, isOpen, onToggle }) => {
 
       {/* History Button */}
       <button
+        onClick={() => onHistory && onHistory()}
         className={`mx-4 h-12 rounded-full flex items-center gap-3 transition-all duration-500 ease-in-out ${
           isDark
             ? "bg-gray-800 hover:bg-gray-700"
