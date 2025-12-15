@@ -4,7 +4,7 @@ Run: python create_users.py
 """
 from app import create_app
 from models import db, User
-from flask_bcrypt import generate_password_hash
+from auth_routes import bcrypt
 
 def create_test_users():
     app = create_app()
@@ -41,7 +41,7 @@ def create_test_users():
             user = User(
                 name=user_data['name'],
                 email=user_data['email'],
-                password_hash=generate_password_hash(user_data['password'])
+                password_hash=bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
             )
             db.session.add(user)
             print(f"✓ Created user: {user_data['email']} (password: {user_data['password']})")
