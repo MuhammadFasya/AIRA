@@ -11,6 +11,7 @@ Routes implemented (JSON responses only):
 All protected routes use JWT Bearer tokens.
 """
 import os
+import time
 import requests
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -135,9 +136,36 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
         except Exception:
             pass
 
-        resp = requests.post(api_url, headers=headers, json=payload, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
+        # Retry logic for rate limiting (429 errors)
+        max_retries = 3
+        retry_delay = 2  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                resp = requests.post(api_url, headers=headers, json=payload, timeout=15)
+                resp.raise_for_status()
+                data = resp.json()
+                break  # Success! Exit retry loop
+                
+            except requests.exceptions.HTTPError as http_err:
+                # Check if it's a 429 rate limit error
+                if resp.status_code == 429 and attempt < max_retries - 1:
+                    # Calculate exponential backoff: 2s, 4s, 8s
+                    wait_time = retry_delay * (2 ** attempt)
+                    try:
+                        current_app.logger.warning(
+                            f'Rate limit hit (429). Retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})'
+                        )
+                    except Exception:
+                        pass
+                    time.sleep(wait_time)
+                    continue  # Retry
+                else:
+                    # Not a 429 or max retries reached
+                    raise http_err
+        else:
+            # This only executes if we never broke out of the loop (all retries failed)
+            raise Exception('Max retries reached for Gemini API')
 
         # Try common keys; adapt as needed for your Gemini product
         reply = data.get('reply') or data.get('output') or data.get('text')
@@ -166,7 +194,7 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
             pass
         # Do not crash the entire request if Gemini fails; return friendly message
         return {
-            'reply': "Aira is having trouble reaching the AI service right now. Please try again later.",
+            'reply': "Aira is having trouble reaching the AI service right now. Please try again in a moment.",
             'error': str(exc),
         }
 
