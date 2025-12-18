@@ -1,7 +1,7 @@
-"""Chat blueprint: CRUD operations and Gemini integration.
+"""Chat blueprint: CRUD operations and AI integration (Groq/Gemini).
 
 Routes implemented (JSON responses only):
-- POST /chat            -> send message to Aira (Gemini), save both user and aira messages
+- POST /chat            -> send message to Aira (AI), save both user and aira messages
 - POST /chat/create     -> create a chat record (protected)
 - GET  /chat/<user_id>  -> read user's chat history (protected)
 - PUT  /chat/update/<chat_id> -> update chat message (protected)
@@ -9,6 +9,10 @@ Routes implemented (JSON responses only):
 - DELETE /chat/clear/<user_id> -> delete all user's chats (protected)
 
 All protected routes use JWT Bearer tokens.
+
+AI Provider Support:
+- Groq (recommended): Fast inference with generous free tier (14,400 RPD)
+- Google Gemini: Fallback option with lower free tier limits
 """
 import os
 import time
@@ -45,9 +49,18 @@ def detect_sentiment(text: str) -> str:
 def get_gemini_response(user_message: str) -> dict:
     """Call the AI API to generate a reply.
 
-    This implementation uses a configurable `GEMINI_API_URL` and
-    `GEMINI_API_KEY` from environment variables to keep the code
-    provider-agnostic. Supports both Google Gemini and Groq providers.
+    Supports multiple AI providers through configurable environment variables:
+    - GEMINI_API_KEY: Your API key (Groq starts with 'gsk_', Google starts with 'AIza')
+    - GEMINI_PROVIDER: 'groq' or 'google' (auto-detected from API key format)
+    - GEMINI_MODEL: Model name (default: 'llama-3.3-70b-versatile' for Groq)
+    - GEMINI_API_URL: Optional override for API endpoint (auto-detected)
+    
+    Groq Configuration (Recommended):
+        GEMINI_API_KEY=gsk_your_key_here
+        GEMINI_PROVIDER=groq
+        GEMINI_MODEL=llama-3.3-70b-versatile
+        
+    Returns a dict with 'reply' key containing the AI response.
     """
     api_url = os.getenv('GEMINI_API_URL')
     api_key = os.getenv('GEMINI_API_KEY')
@@ -170,7 +183,7 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
     try:
         # Log the call (do not log API key)
         try:
-            current_app.logger.info('Calling Gemini API at %s', api_url)
+            current_app.logger.info('Calling AI API (%s) at %s', provider or 'auto', api_url)
         except Exception:
             pass
 
@@ -203,7 +216,7 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
                     raise http_err
         else:
             # This only executes if we never broke out of the loop (all retries failed)
-            raise Exception('Max retries reached for Gemini API')
+            raise Exception('Max retries reached for AI API')
 
         # Try common keys; adapt as needed for different AI providers
         reply = None
@@ -237,24 +250,28 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
     except Exception as exc:
         # Log exception server-side for easier debugging (no secrets)
         try:
-            current_app.logger.exception('Gemini API call failed')
+            current_app.logger.exception('AI API call failed')
         except Exception:
             pass
-        # Do not crash the entire request if Gemini fails; return friendly message
+        # Do not crash the entire request if AI fails; return friendly message
         return {
             'reply': "Aira is having trouble reaching the AI service right now. Please try again in a moment.",
             'error': str(exc),
         }
 
 
-@chat_bp.route('/debug/gemini', methods=['GET'])
-def debug_gemini():
+@chat_bp.route('/debug/ai', methods=['GET'])
+@chat_bp.route('/debug/gemini', methods=['GET'])  # Legacy route for backward compatibility
+def debug_ai():
     """Lightweight endpoint to check AI API connectivity and config.
 
-    Returns whether GEMINI_API_URL and GEMINI_API_KEY are configured and a
-    short attempt to call the endpoint. Supports both Groq and Google Gemini.
+    Tests the connection to your configured AI provider (Groq or Google Gemini).
+    Returns configuration status and a test API call result.
+    
+    Access via: /debug/ai or /debug/gemini (legacy)
+    
     This endpoint is intentionally unprotected to make local debugging easier;
-    do not expose it in production without proper controls.
+    consider adding authentication in production environments.
     """
     api_url = os.getenv('GEMINI_API_URL')
     api_key = os.getenv('GEMINI_API_KEY')
@@ -303,10 +320,16 @@ def debug_gemini():
             body = resp.json()
         except Exception:
             body = {'text': resp.text[:200]}
-        return jsonify({'ok': True, 'status_code': status, 'body_preview': body}), 200
+        return jsonify({
+            'ok': True, 
+            'provider': provider or 'auto-detected',
+            'model': model,
+            'status_code': status, 
+            'body_preview': body
+        }), 200
     except Exception as exc:
         try:
-            current_app.logger.exception('Gemini debug call failed')
+            current_app.logger.exception('AI API debug call failed')
         except Exception:
             pass
         return jsonify({'ok': False, 'error': str(exc)}), 502
@@ -315,10 +338,13 @@ def debug_gemini():
 @chat_bp.route('/chat', methods=['POST'])
 @jwt_required()
 def chat():
-    """Main chat endpoint: takes user message, calls Gemini, stores both messages.
+    """Main chat endpoint: takes user message, calls AI, stores both messages.
 
     Request body: { message: str }
-    Returns: { aira_reply, sentiment, user_message, chat_records }
+    Returns: { response: str, sentiment: str, history_length: int }
+    
+    The AI response is generated by Groq (or configured AI provider) and both
+    the user's message and Aira's reply are stored in the database.
     """
     try:
         data = request.get_json() or {}
@@ -343,7 +369,7 @@ def chat():
         db.session.add(user_chat)
         db.session.commit()
 
-        # Call Gemini
+        # Call AI provider (Groq/Gemini)
         ai_resp = get_gemini_response(message)
         aira_reply = ai_resp.get('reply') if isinstance(ai_resp, dict) else str(ai_resp)
 
