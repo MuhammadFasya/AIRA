@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import ChatArea from "../components/ChatArea";
 import ChatInput from "../components/ChatInput";
 import Greeting from "../components/Greeting";
 import SearchModal from "../components/SearchModal";
 import HistoryModal from "../components/HistoryModal";
-import Toast from "../components/Toast";
 import axiosClient from "../api/axiosClient";
 
 /**
@@ -57,11 +57,6 @@ const Home = ({
   const [chatHistory, setChatHistory] = useState([]);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type });
-  };
 
   /**
    * Send message to backend and get response
@@ -116,23 +111,21 @@ const Home = ({
     } catch (error) {
       console.error("Error sending message:", error);
 
-      // Show user-friendly error toast
+      // Show user-friendly error toast with react-hot-toast
       if (error.response) {
         // Server responded with error
-        showToast(
+        toast.error(
           error.response.data?.error ||
-            "Failed to send message. Please try again.",
-          "error"
+            "Failed to send message. Please try again."
         );
       } else if (error.request) {
         // No response from server
-        showToast(
-          "Cannot connect to server. Please check your connection and make sure the backend is running.",
-          "error"
+        toast.error(
+          "Cannot connect to server. Please check your connection."
         );
       } else {
         // Other errors
-        showToast("An unexpected error occurred. Please try again.", "error");
+        toast.error("An unexpected error occurred. Please try again.");
       }
 
       // Error response from Aira (still show in chat for context)
@@ -245,15 +238,6 @@ const Home = ({
         chatHistory={chatHistory}
         isDark={isDark}
       />
-
-      {/* Toast Notifications */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import Settings from "./pages/Settings";
 import Home from "./pages/Home";
@@ -110,6 +111,31 @@ function App() {
 
   return (
     <div className={isDark ? "dark" : ""}>
+      {/* Toast notifications - positioned globally */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: isDark ? '#1f2937' : '#ffffff',
+            color: isDark ? '#f3f4f6' : '#111827',
+            border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
+      
       <div
         className={`w-full h-screen flex flex-col transition-colors duration-300 ${isDark ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}
       >

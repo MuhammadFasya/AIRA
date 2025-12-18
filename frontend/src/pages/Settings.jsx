@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { X, User, Globe, LogOut, Upload } from "lucide-react";
 import { useTranslation } from "../utils/translations";
 
@@ -64,11 +65,11 @@ const Settings = ({
       }
 
       console.log("Profile saved:", updatedUser);
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       onClose();
     } catch (error) {
       console.error("Error saving profile:", error);
-      alert("Failed to save profile. Please try again.");
+      toast.error("Failed to save profile. Please try again.");
     }
   };
 
@@ -77,11 +78,13 @@ const Settings = ({
     if (onLanguageChange) {
       onLanguageChange(langCode);
     }
+    toast.success(`Language changed to ${langCode === 'en' ? 'English' : 'Indonesian'}`);
     console.log("Language changed to:", langCode);
   };
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
+      toast.success("Logged out successfully!");
       onLogout && onLogout();
       onClose();
     }
@@ -90,7 +93,7 @@ const Settings = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       {/* Backdrop Blur */}
       <div
         className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
@@ -99,18 +102,18 @@ const Settings = ({
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-2xl rounded-lg shadow-2xl overflow-hidden ${
+        className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg shadow-2xl ${
           isDark ? "bg-gray-800" : "bg-white"
         }`}
       >
         {/* Header */}
         <div
-          className={`flex items-center justify-between p-6 border-b ${
+          className={`flex items-center justify-between p-4 sm:p-6 border-b ${
             isDark ? "border-gray-700" : "border-gray-200"
           }`}
         >
           <h2
-            className={`text-xl font-bold ${
+            className={`text-lg sm:text-xl font-bold ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
@@ -124,7 +127,7 @@ const Settings = ({
                 : "hover:bg-gray-100 text-gray-600"
             }`}
           >
-            <X size={24} />
+            <X size={20} className="sm:w-6 sm:h-6" />
           </button>
         </div>
 
@@ -136,7 +139,7 @@ const Settings = ({
         >
           <button
             onClick={() => setActiveTab("profile")}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-medium transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-medium transition-colors ${
               activeTab === "profile"
                 ? isDark
                   ? "bg-gray-700 text-white border-b-2 border-blue-500"
