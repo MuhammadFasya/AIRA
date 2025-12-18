@@ -43,30 +43,68 @@ def detect_sentiment(text: str) -> str:
 
 
 def get_gemini_response(user_message: str) -> dict:
-    """Call the Gemini API to generate a reply.
+    """Call the AI API to generate a reply.
 
     This implementation uses a configurable `GEMINI_API_URL` and
     `GEMINI_API_KEY` from environment variables to keep the code
-    provider-agnostic. Adjust the payload/response parsing to match the
-    specific Gemini product you have access to.
+    provider-agnostic. Supports both Google Gemini and Groq providers.
     """
     api_url = os.getenv('GEMINI_API_URL')
     api_key = os.getenv('GEMINI_API_KEY')
     provider = os.getenv('GEMINI_PROVIDER', '').lower()
-    model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+    model = os.getenv('GEMINI_MODEL', 'llama-3.3-70b-versatile')
     api_version = os.getenv('GEMINI_API_VERSION', 'v1beta')
 
-    # If API URL not provided but API key present, try to infer Google GL endpoint
+    # Auto-detect provider from API key if not explicitly set
+    if not provider and api_key:
+        if isinstance(api_key, str):
+            if api_key.startswith('gsk_'):
+                provider = 'groq'
+            elif api_key.startswith('AIza'):
+                provider = 'google'
+
+    # Infer API URL based on provider
     if not api_url and api_key:
-        if provider == 'google' or (isinstance(api_key, str) and api_key.startswith('AIza')):
+        if provider == 'groq':
+            api_url = 'https://api.groq.com/openai/v1/chat/completions'
+        elif provider == 'google' or (isinstance(api_key, str) and api_key.startswith('AIza')):
             api_url = f'https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent'
 
     # If neither URL nor key are available, fall back to local echo (dev mode)
     if not api_url and not api_key:
         return {'reply': f"I heard: {user_message}", 'meta': {'source': 'local-echo'}}
 
+    # System prompt to define Aira's personality and behavior
+    system_instruction = """You are Aira, a compassionate and empathetic mental health support AI designed specifically for Gen-Z students. Your purpose is to:
+
+1. Listen actively and provide emotional support
+2. Help users process their feelings and thoughts
+3. Offer coping strategies and mental wellness tips
+4. Be warm, understanding, and non-judgmental
+5. Use casual, friendly language that resonates with Gen-Z
+6. Recognize when someone needs professional help and suggest it appropriately
+
+When asked "who are you" or similar questions, introduce yourself as: "I'm Aira, your mental health companion. I'm here to listen, support, and help you navigate your feelings and challenges. Think of me as a friendly ear whenever you need someone to talk to."
+
+Always be supportive, never dismissive, and maintain a safe, confidential space for conversations."""
+
     # Build headers and payload depending on the provider/endpoint
-    if api_url and 'generativelanguage.googleapis.com' in api_url:
+    if provider == 'groq' or (api_url and 'groq.com' in api_url):
+        # Groq uses OpenAI-compatible format
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            'model': model,
+            'messages': [
+                {'role': 'system', 'content': system_instruction},
+                {'role': 'user', 'content': user_message}
+            ],
+            'temperature': float(os.getenv('GEMINI_TEMPERATURE', '0.7')),
+            'max_tokens': int(os.getenv('GEMINI_MAX_TOKENS', '512')),
+        }
+    elif api_url and 'generativelanguage.googleapis.com' in api_url:
         # Google Generative Language expects X-goog-api-key and `contents` payload
         headers = {
             'X-goog-api-key': api_key,
@@ -167,10 +205,20 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
             # This only executes if we never broke out of the loop (all retries failed)
             raise Exception('Max retries reached for Gemini API')
 
-        # Try common keys; adapt as needed for your Gemini product
-        reply = data.get('reply') or data.get('output') or data.get('text')
+        # Try common keys; adapt as needed for different AI providers
+        reply = None
+        
+        # Groq/OpenAI format: choices[0].message.content
+        if isinstance(data.get('choices'), list) and len(data['choices']) > 0:
+            message = data['choices'][0].get('message', {})
+            reply = message.get('content')
+        
+        # Fallback to common keys
         if not reply:
-            # Some APIs return nested structures
+            reply = data.get('reply') or data.get('output') or data.get('text')
+        
+        # Google Gemini format: candidates[0].content.parts[0].text
+        if not reply:
             if isinstance(data.get('candidates'), list) and len(data['candidates']) > 0:
                 content = data['candidates'][0].get('content')
                 if content:
@@ -201,28 +249,47 @@ Always be supportive, never dismissive, and maintain a safe, confidential space 
 
 @chat_bp.route('/debug/gemini', methods=['GET'])
 def debug_gemini():
-    """Lightweight endpoint to check Gemini connectivity and config.
+    """Lightweight endpoint to check AI API connectivity and config.
 
     Returns whether GEMINI_API_URL and GEMINI_API_KEY are configured and a
-    short attempt to call the endpoint. This endpoint is intentionally
-    unprotected to make local debugging easier; do not expose it in
-    production without proper controls.
+    short attempt to call the endpoint. Supports both Groq and Google Gemini.
+    This endpoint is intentionally unprotected to make local debugging easier;
+    do not expose it in production without proper controls.
     """
     api_url = os.getenv('GEMINI_API_URL')
     api_key = os.getenv('GEMINI_API_KEY')
     provider = os.getenv('GEMINI_PROVIDER', '').lower()
-    model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+    model = os.getenv('GEMINI_MODEL', 'llama-3.3-70b-versatile')
     api_version = os.getenv('GEMINI_API_VERSION', 'v1beta')
 
-    # Infer Google endpoint if key present but URL missing
+    # Auto-detect provider from API key
+    if not provider and api_key:
+        if isinstance(api_key, str):
+            if api_key.startswith('gsk_'):
+                provider = 'groq'
+            elif api_key.startswith('AIza'):
+                provider = 'google'
+
+    # Infer API URL based on provider
     if not api_url and api_key:
-        if provider == 'google' or (isinstance(api_key, str) and api_key.startswith('AIza')):
+        if provider == 'groq':
+            api_url = 'https://api.groq.com/openai/v1/chat/completions'
+        elif provider == 'google' or (isinstance(api_key, str) and api_key.startswith('AIza')):
             api_url = f'https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent'
 
     if not api_url or not api_key:
         return jsonify({'ok': False, 'reason': 'GEMINI_API_URL or GEMINI_API_KEY not set'}), 400
 
-    if 'generativelanguage.googleapis.com' in api_url:
+    # Build test payload based on provider
+    if provider == 'groq' or (api_url and 'groq.com' in api_url):
+        headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
+        test_payload = {
+            'model': model,
+            'messages': [{'role': 'user', 'content': 'ping'}],
+            'temperature': 0.0,
+            'max_tokens': 16
+        }
+    elif 'generativelanguage.googleapis.com' in api_url:
         headers = {'X-goog-api-key': api_key, 'Content-Type': 'application/json'}
         test_payload = {'contents': [{'parts': [{'text': 'ping'}]}]}
     else:
