@@ -5,6 +5,7 @@ import Settings from "./pages/Settings";
 import Home from "./pages/Home";
 import LoadingScreen from "./components/LoadingScreen";
 import Login from "./pages/Login";
+import { isTokenExpired, clearAuthData } from "./utils/tokenUtils";
 import "./index.css";
 
 /**
@@ -78,6 +79,29 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
+  // Validate token on app mount and periodically check expiration
+  useEffect(() => {
+    const checkTokenValidity = () => {
+      const token = localStorage.getItem("aira_token");
+      const storedUser = localStorage.getItem("aira_user");
+      
+      // If we have a user but no token, or token is expired, clear everything
+      if (storedUser && (!token || isTokenExpired(token))) {
+        console.log('Token expired or missing - logging out');
+        clearAuthData();
+        setUser(null);
+      }
+    };
+
+    // Check immediately on mount
+    checkTokenValidity();
+
+    // Check every 60 seconds
+    const interval = setInterval(checkTokenValidity, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Theme-aware asset paths (folders in public/assets contain spaces)
   const themeFolder = isDark ? "Dark Mode" : "Light Mode";
   const logoSrc = encodeURI(`/assets/${themeFolder}/Aira.png`);
@@ -117,25 +141,25 @@ function App() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: isDark ? '#1f2937' : '#ffffff',
-            color: isDark ? '#f3f4f6' : '#111827',
-            border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+            background: isDark ? "#1f2937" : "#ffffff",
+            color: isDark ? "#f3f4f6" : "#111827",
+            border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
           },
           success: {
             iconTheme: {
-              primary: '#10b981',
-              secondary: '#ffffff',
+              primary: "#10b981",
+              secondary: "#ffffff",
             },
           },
           error: {
             iconTheme: {
-              primary: '#ef4444',
-              secondary: '#ffffff',
+              primary: "#ef4444",
+              secondary: "#ffffff",
             },
           },
         }}
       />
-      
+
       <div
         className={`w-full h-screen flex flex-col transition-colors duration-300 ${isDark ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}
       >

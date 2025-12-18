@@ -40,7 +40,8 @@ def create_app(config_override: dict | None = None) -> Flask:
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'please-change-me')
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', app.config['SECRET_KEY'])
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///aira.db')
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=int(os.getenv('JWT_EXP_DAYS', '7')))
+    # JWT token expires in 3 days (good balance between security and UX)
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=int(os.getenv('JWT_EXP_DAYS', '3')))
 
     # Allow overrides (useful for tests)
     if config_override:
