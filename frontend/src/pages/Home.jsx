@@ -120,9 +120,7 @@ const Home = ({
         );
       } else if (error.request) {
         // No response from server
-        toast.error(
-          "Cannot connect to server. Please check your connection."
-        );
+        toast.error("Cannot connect to server. Please check your connection.");
       } else {
         // Other errors
         toast.error("An unexpected error occurred. Please try again.");

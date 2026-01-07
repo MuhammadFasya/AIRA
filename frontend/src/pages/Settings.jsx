@@ -78,7 +78,9 @@ const Settings = ({
     if (onLanguageChange) {
       onLanguageChange(langCode);
     }
-    toast.success(`Language changed to ${langCode === 'en' ? 'English' : 'Indonesian'}`);
+    toast.success(
+      `Language changed to ${langCode === "en" ? "English" : "Indonesian"}`
+    );
     console.log("Language changed to:", langCode);
   };
 

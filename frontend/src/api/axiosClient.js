@@ -16,24 +16,25 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use((config) => {
   try {
     const token = localStorage.getItem("aira_token");
-    
+
     // Skip token validation for login/register endpoints (they don't need tokens)
-    const isAuthEndpoint = config.url?.includes('/auth/login') || 
-                          config.url?.includes('/auth/register');
-    
+    const isAuthEndpoint =
+      config.url?.includes("/auth/login") ||
+      config.url?.includes("/auth/register");
+
     if (token && !isAuthEndpoint) {
       // Check if token is expired (but only for non-auth endpoints)
       if (isTokenExpired(token)) {
         // Token expired - clear auth data and redirect to login
         clearAuthData();
-        
+
         // Redirect to login (trigger app reload)
-        window.location.href = '/';
-        
+        window.location.href = "/";
+
         // Reject the request
-        return Promise.reject(new Error('Token expired'));
+        return Promise.reject(new Error("Token expired"));
       }
-      
+
       // Token is valid - attach to request
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -44,7 +45,7 @@ axiosClient.interceptors.request.use((config) => {
       }
     }
   } catch (e) {
-    console.error('Error in request interceptor:', e);
+    console.error("Error in request interceptor:", e);
   }
   return config;
 });
@@ -56,7 +57,7 @@ axiosClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token is invalid or expired on backend
       clearAuthData();
-      window.location.href = '/';
+      window.location.href = "/";
     }
     return Promise.reject(error);
   }

@@ -84,10 +84,10 @@ function App() {
     const checkTokenValidity = () => {
       const token = localStorage.getItem("aira_token");
       const storedUser = localStorage.getItem("aira_user");
-      
+
       // If we have a user but no token, or token is expired, clear everything
       if (storedUser && (!token || isTokenExpired(token))) {
-        console.log('Token expired or missing - logging out');
+        console.log("Token expired or missing - logging out");
         clearAuthData();
         setUser(null);
       }

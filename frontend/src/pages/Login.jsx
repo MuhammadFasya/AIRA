@@ -29,7 +29,9 @@ const Login = ({ onLogin, logoSrc, bgSrc, isDark, setIsDark }) => {
       onLogin(user);
     } catch (err) {
       console.error(err);
-      const errorMsg = err?.response?.data?.error || "Login failed. Please check your credentials.";
+      const errorMsg =
+        err?.response?.data?.error ||
+        "Login failed. Please check your credentials.";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -71,7 +73,9 @@ const Login = ({ onLogin, logoSrc, bgSrc, isDark, setIsDark }) => {
       <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl bg-white dark:bg-gray-800">
         <div className="flex flex-col items-center gap-2 sm:gap-3 mb-6">
           <Avatar src={logoSrc} alt="Aira" size={80} />
-          <h2 className="text-xl sm:text-2xl font-bold text-center">Sign in to Aira</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-center">
+            Sign in to Aira
+          </h2>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center">
             A friendly, empathetic AI companion
           </p>
@@ -102,7 +106,11 @@ const Login = ({ onLogin, logoSrc, bgSrc, isDark, setIsDark }) => {
             />
           </div>
 
-          {error && <p className="text-xs sm:text-sm text-red-500 text-center">{error}</p>}
+          {error && (
+            <p className="text-xs sm:text-sm text-red-500 text-center">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"

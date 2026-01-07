@@ -11,18 +11,20 @@
 export const decodeToken = (token) => {
   try {
     if (!token) return null;
-    
+
     // JWT format: header.payload.signature
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) return null;
-    
+
     // Decode the payload (base64url)
     const payload = parts[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    
+    const decoded = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+    );
+
     return decoded;
   } catch (error) {
-    console.error('Error decoding token:', error);
+    console.error("Error decoding token:", error);
     return null;
   }
 };
@@ -35,11 +37,11 @@ export const decodeToken = (token) => {
 export const isTokenExpired = (token) => {
   const decoded = decodeToken(token);
   if (!decoded || !decoded.exp) return true;
-  
+
   // exp is in seconds, Date.now() is in milliseconds
   const expirationTime = decoded.exp * 1000;
   const currentTime = Date.now();
-  
+
   return currentTime >= expirationTime;
 };
 
@@ -49,9 +51,9 @@ export const isTokenExpired = (token) => {
  */
 export const getToken = () => {
   try {
-    return localStorage.getItem('aira_token');
+    return localStorage.getItem("aira_token");
   } catch (error) {
-    console.error('Error getting token:', error);
+    console.error("Error getting token:", error);
     return null;
   }
 };
@@ -63,7 +65,7 @@ export const getToken = () => {
 export const isAuthenticated = () => {
   const token = getToken();
   if (!token) return false;
-  
+
   return !isTokenExpired(token);
 };
 
@@ -72,10 +74,10 @@ export const isAuthenticated = () => {
  */
 export const clearAuthData = () => {
   try {
-    localStorage.removeItem('aira_token');
-    localStorage.removeItem('aira_user');
+    localStorage.removeItem("aira_token");
+    localStorage.removeItem("aira_user");
   } catch (error) {
-    console.error('Error clearing auth data:', error);
+    console.error("Error clearing auth data:", error);
   }
 };
 
@@ -87,12 +89,12 @@ export const clearAuthData = () => {
 export const getTokenExpirationMinutes = (token) => {
   const decoded = decodeToken(token);
   if (!decoded || !decoded.exp) return 0;
-  
+
   const expirationTime = decoded.exp * 1000;
   const currentTime = Date.now();
   const remainingMs = expirationTime - currentTime;
-  
+
   if (remainingMs <= 0) return 0;
-  
+
   return Math.floor(remainingMs / 1000 / 60); // Convert to minutes
 };
