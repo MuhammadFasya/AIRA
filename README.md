@@ -1,17 +1,17 @@
-# 🧠 Aira - Mental Health Chatbot for Gen-Z Students
+# Aira - Mental Health Chatbot for Gen-Z Students
 
 A modern, empathetic web chatbot designed specifically for Gen-Z students seeking mental health support. Built with React + Vite (frontend) and Flask (backend).
 
-## 📸 Project Overview
+##  Project Overview
 
 **Aira** is a comprehensive web application featuring:
 
-- ✨ Beautiful, responsive UI with light/dark theme support
-- 💬 Real-time chat interface with empathetic AI responses
-- 🎯 Sentiment and intent detection
-- 📱 Mobile-first responsive design
-- 🔄 Stateful conversation management
-- 🚀 Modern tech stack
+-  Beautiful, responsive UI with light/dark theme support
+-  Real-time chat interface with empathetic AI responses
+-  Sentiment and intent detection
+-  Mobile-first responsive design
+-  Stateful conversation management
+-  Modern tech stack
 
 ### Key Features
 
@@ -24,7 +24,7 @@ A modern, empathetic web chatbot designed specifically for Gen-Z students seekin
 - **Settings Modal** - Customize user preferences
 - **Accessibility** - WCAG compliant components
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 Aira-Web/
@@ -58,7 +58,7 @@ Aira-Web/
 └── README.md                   # This file
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -116,11 +116,11 @@ python app.py
 
 The backend will start at `http://localhost:5000`
 
-#### Step 4: Start Chatting! 🎉
+#### Step 4: Start Chatting! 
 
 Open your browser and visit `http://localhost:3000`
 
-## 🏗️ Architecture
+##  Architecture
 
 ### Frontend Architecture
 
@@ -161,7 +161,7 @@ Flask API
     └── GET /context (get metadata)
 ```
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Chat Endpoint
 
@@ -219,7 +219,7 @@ Verify API is running.
 }
 ```
 
-## 🎯 Intent Categories
+##  Intent Categories
 
 Aira detects the following user intents:
 
@@ -232,7 +232,7 @@ Aira detects the following user intents:
 | **kesepian**    | lonely, alone, kesepian, isolated, solitude, disconnected | Connection offering         |
 | **general**     | (default)                                                 | Generic empathetic response |
 
-## 🎨 UI/UX Features
+##  UI/UX Features
 
 ### Theme System
 
@@ -257,7 +257,7 @@ Aira detects the following user intents:
 | **ChatInput** | User input      | Auto-expand textarea, keyboard shortcuts |
 | **Greeting**  | Welcome screen  | Random messages, time-based greeting     |
 
-## 🔧 Technologies Used
+##  Technologies Used
 
 ### Frontend
 
@@ -274,7 +274,7 @@ Aira detects the following user intents:
 - **TextBlob** - NLP sentiment analysis
 - **python-dotenv** - Environment management
 
-## 📋 Environment Variables
+##  Environment Variables
 
 ### Frontend (.env)
 
@@ -295,7 +295,7 @@ FLASK_PORT=5000
 # GEMINI_API_KEY=your_key_here (optional)
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### Frontend Deployment Options
 
@@ -351,7 +351,7 @@ Deploy as containerized application (Docker) or traditional VPS
 - [ ] Add authentication (optional)
 - [ ] Set up monitoring/alerts
 
-## 🧪 Testing
+##  Testing
 
 ### Frontend Testing
 
@@ -372,7 +372,7 @@ curl -X POST http://localhost:5000/chat -H "Content-Type: application/json" -d '
 # Or use Postman / Thunder Client
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Frontend Issues
 
@@ -424,7 +424,7 @@ kill -9 <PID>
 - Check CORS configuration in `app.py`
 - Ensure frontend URL is whitelisted
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 
 - [ ] User authentication & profiles
 - [ ] Database integration (PostgreSQL)
@@ -437,7 +437,7 @@ kill -9 <PID>
 - [ ] Mood tracking & analytics
 - [ ] Crisis support hotline integration
 
-## 📚 Documentation
+##  Documentation
 
 - [Frontend README](./frontend/README.md) - Detailed frontend documentation
 - [Backend README](./backend/README.md) - Detailed backend documentation
@@ -445,7 +445,7 @@ kill -9 <PID>
 - [Flask Docs](https://flask.palletsprojects.com/)
 - [TailwindCSS Docs](https://tailwindcss.com)
 
-## 💡 Tips & Best Practices
+##  Tips & Best Practices
 
 ### Development
 
@@ -469,7 +469,7 @@ kill -9 <PID>
 - Implement rate limiting
 - Never commit `.env` files
 
-## 📞 Support & Contact
+##  Support & Contact
 
 For issues or questions:
 
@@ -478,17 +478,17 @@ For issues or questions:
 3. Check GitHub issues (if applicable)
 4. Contact: [your contact info]
 
-## 📄 License
+##  License
 
 This project is open source and available for educational purposes.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 Built with ❤️ for Gen-Z students seeking mental health support.
 
 ---
 
-**Start building Aira today! 🚀**
+**Start building Aira today! **
 
 ### Quick Links
 
